@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN"  class="custom-scroll">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SVG 图标库与 Sprites 还原工具</title>
+    <meta name="description"
+      content="内置 Font Awesome 常规 / 实色 / 品牌共 1,538 个小图标，支持搜索、点击复制内联 / Base64 / CSS 转义代码、ZIP 打包下载与自定义 SVG Sprites 导入，全部本地静态运行。" />
+    <link rel="stylesheet" href="index.css?v=20261119" />
+    <link rel="stylesheet" href="../site-header.css?v=20261119" />
+    <!-- 搜索过滤样式容器：sprites-app.js 会按关键字动态注入 .li-grid 的显示规则 -->
+    <style id="searchStyle"></style>
+  </head>
+
+  <body>
+    <!-- ========== 页面控件专用小图标 sprite（仅 5 个，与下方图标库数据无关） ========== -->
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;" aria-hidden="true">
+      <!--
+      Font Awesome Free 5.10.1 by @fontawesome - https://fontawesome.com
+      License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
+    -->
+      <symbol id="plus-square" viewBox="0 0 448 512">
+        <path
+          d="M352 240v32c0 6.6-5.4 12-12 12h-88v88c0 6.6-5.4 12-12 12h-32c-6.6 0-12-5.4-12-12v-88h-88c-6.6 0-12-5.4-12-12v-32c0-6.6 5.4-12 12-12h88v-88c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v88h88c6.6 0 12 5.4 12 12zm96-160v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V80c0-26.5 21.5-48 48-48h352c26.5 0 48 21.5 48 48zm-48 346V86c0-3.3-2.7-6-6-6H54c-3.3 0-6 2.7-6 6v340c0 3.3 2.7 6 6 6h340c3.3 0 6-2.7 6-6z">
+        </path>
+      </symbol>
+      <symbol id="arrow-alt-circle-down" viewBox="0 0 512 512">
+        <path
+          d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm-32-316v116h-67c-10.7 0-16 12.9-8.5 20.5l99 99c4.7 4.7 12.3 4.7 17 0l99-99c7.6-7.6 2.2-20.5-8.5-20.5h-67V140c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12z">
+        </path>
+      </symbol>
+      <symbol id="clone" viewBox="0 0 512 512">
+        <path
+          d="M464 0H144c-26.51 0-48 21.49-48 48v48H48c-26.51 0-48 21.49-48 48v320c0 26.51 21.49 48 48 48h320c26.51 0 48-21.49 48-48v-48h48c26.51 0 48-21.49 48-48V48c0-26.51-21.49-48-48-48zM362 464H54a6 6 0 0 1-6-6V150a6 6 0 0 1 6-6h42v224c0 26.51 21.49 48 48 48h224v42a6 6 0 0 1-6 6zm96-96H150a6 6 0 0 1-6-6V54a6 6 0 0 1 6-6h308a6 6 0 0 1 6 6v308a6 6 0 0 1-6 6z">
+        </path>
+      </symbol>
+      <symbol id="question-circle" viewBox="0 0 512 512">
+        <path
+          d="M256 8C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8zm0 448c-110.532 0-200-89.431-200-200 0-110.495 89.472-200 200-200 110.491 0 200 89.471 200 200 0 110.53-89.431 200-200 200zm107.244-255.2c0 67.052-72.421 68.084-72.421 92.863V300c0 6.627-5.373 12-12 12h-45.647c-6.627 0-12-5.373-12-12v-8.659c0-35.745 27.1-50.034 47.579-61.516 17.561-9.845 28.324-16.541 28.324-29.579 0-17.246-21.999-28.693-39.784-28.693-23.189 0-33.894 10.977-48.942 29.969-4.057 5.12-11.46 6.071-16.666 2.124l-27.824-21.098c-5.107-3.872-6.251-11.066-2.644-16.363C184.846 131.491 214.94 112 261.794 112c49.071 0 101.45 38.304 101.45 88.8zM298 368c0 23.159-18.841 42-42 42s-42-18.841-42-42 18.841-42 42-42 42 18.841 42 42z">
+        </path>
+      </symbol>
+      <symbol id="window-close" viewBox="0 0 512 512">
+        <path
+          d="M464 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h416c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm0 394c0 3.3-2.7 6-6 6H54c-3.3 0-6-2.7-6-6V86c0-3.3 2.7-6 6-6h404c3.3 0 6 2.7 6 6v340zM356.5 194.6L295.1 256l61.4 61.4c4.6 4.6 4.6 12.1 0 16.8l-22.3 22.3c-4.6 4.6-12.1 4.6-16.8 0L256 295.1l-61.4 61.4c-4.6 4.6-12.1 4.6-16.8 0l-22.3-22.3c-4.6-4.6-4.6-12.1 0-16.8l61.4-61.4-61.4-61.4c-4.6-4.6-4.6-12.1 0-16.8l22.3-22.3c4.6-4.6 12.1-4.6 16.8 0l61.4 61.4 61.4-61.4c4.6-4.6 12.1-4.6 16.8 0l22.3 22.3c4.7 4.6 4.7 12.1 0 16.8z">
+        </path>
+      </symbol>
+    </svg>
+    <!-- ========== 站点 Header：品牌 + 横向导航 ========== -->
+    <header class="fh-site-header">
+      <div class="fh-site-inner">
+        <a href="../index.html" class="fh-site-brand">
+          <span class="fh-site-logo"></span>
+          <span class="fh-site-name">开发工具箱</span>
+        </a>
+        <nav aria-label="站点导航">
+          <ul class="fh-site-nav">
+                    <li><a href="../index.html">首页</a></li>
+                    <li><a href="../json-format/index.html">JSON格式化</a></li>
+                    <li><a href="../json-diff/index.html">JSON 文本比较</a></li>
+                    <li><a href="../obfuscator/index.html">JS 代码混淆</a></li>
+                    <li><a href="../code-beautify/index.html">代码美化</a></li>
+                    <li><a href="../code-compress/index.html">代码压缩</a></li>
+                    <li><a href="../en-decode/index.html">信息编码转换</a></li>
+                    <li><a href="../uuid/index.html">UUID生成</a></li>
+                    <li><a href="../svgo/index.html">SVG压缩</a></li>
+                    <li><a href="../svgico/index.html" class="is-active">SVG图标</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <div class="fh-app">
+      <header class="fh-tool-header">
+        <div class="fh-header-stack">
+          <div class="fh-brand-block">
+            <h1>SVG 图标库</h1>
+          </div>
+          <p class="fh-mode-note">内置 Font Awesome 常规 / 实色 / 品牌共 1,538 个小图标；点击图标可复制内联、Base64、CSS 转义代码或下载 SVG /
+            ZIP，支持导入自定义 SVG Sprites，全部在本机完成，不上传任何数据。</p>
+        </div>
+      </header>
+      <main id="content">
+        <!-- 导入与搜索工具条 -->
+        <section id="sectionImport" class="section">
+          <div class="fh-toolbar">
+            <input id="spanSearch" class="fh-search-input" type="search"
+              placeholder="搜索小图标，如 bell、user、github，支持模糊匹配…" />
+            <input type="file" id="upSvg" class="fh-file-input" accept="image/svg+xml" />
+            <label for="upSvg" class="btn btn-primary fh-import-btn" title="导入包含 &lt;symbol&gt; 的 SVG Sprites 文件">
+              <svg class="fh-btn-icon">
+                <use xlink:href="#plus-square"></use>
+              </svg>导入 SVG Sprites </label>
+          </div>
+        </section>
+        <!-- FA 常规图标（描边风格） -->
+        <section id="sectionRegular" class="section" open>
+          <h4 class="title-sub">FA常规图标<output id="iconNumRegular"></output></h4>
+          <div class="title-follow">
+            <div class="title-follow-btn">
+              <input type="checkbox" id="switchRegular" checked />
+              <label class="fh-switch" for="switchRegular" title="展开 / 收起该分组"></label>
+            </div>
+          </div>
+          <div id="gridXRegular" class="section-grid-x"></div>
+        </section>
+        <!-- FA 实色图标（填充风格） -->
+        <section id="sectionSolid" class="section" open>
+          <h4 class="title-sub">FA实色图标<output id="iconNumSolid"></output></h4>
+          <div class="title-follow">
+            <div class="title-follow-btn">
+              <input type="checkbox" id="switchSolid" checked />
+              <label class="fh-switch" for="switchSolid" title="展开 / 收起该分组"></label>
+            </div>
+          </div>
+          <div id="gridXSolid" class="section-grid-x"></div>
+        </section>
+        <!-- FA 品牌图标 -->
+        <section id="sectionBrands" class="section" open>
+          <h4 class="title-sub">FA品牌图标<output id="iconNumBrands"></output></h4>
+          <div class="title-follow">
+            <div class="title-follow-btn">
+              <input type="checkbox" id="switchBrands" checked />
+              <label class="fh-switch" for="switchBrands" title="展开 / 收起该分组"></label>
+            </div>
+          </div>
+          <div id="gridXBrands" class="section-grid-x"></div>
+        </section>
+      </main>
+    </div>
+    <!-- ========== 出错提示（sprites-app.js 通过 .dn 类控制显隐） ========== -->
+    <div id="lightError" class="fh-tip dn"><span></span></div>
+    <!-- ========== 图标结果弹窗：内联 / Base64 / CSS 转义代码 ========== -->
+    <dialog id="dialog" class="fh-dialog-container">
+      <div class="fh-dialog">
+        <button type="button" class="fh-dialog-close" aria-label="关闭">&#10005;</button>
+        <div id="dialogTitle" class="fh-dialog-title"></div>
+        <div class="fh-dialog-body">
+          <div class="result-preview">
+            <div class="result-preview-x">
+              <span id="svgPreview" class="result-preview-svg"></span>
+              <div class="result-color-set">
+                <div class="result-color-li">
+                  <input type="radio" id="radioUnfill" name="fill" checked />
+                  <label for="radioUnfill">不使用 fill 填充</label>
+                  <p class="fh-hint">SVG 内联复制不填充；作为 CSS 背景使用时建议填充</p>
+                </div>
+                <div class="result-color-li">
+                  <input type="radio" id="radioFill" name="fill" />
+                  <label for="radioFill">使用 fill 填充</label>
+                  <input id="colorSet" class="fh-color-input" value="#000000" size="10" title="任意颜色格式，包括颜色关键字" />
+                </div>
+              </div>
+              <div class="result-use-x">
+                <label for="svgUse">&lt;use&gt; 元素内联代码</label>
+                <textarea id="svgUse" class="code-textarea" readonly rows="3"></textarea>
+              </div>
+            </div>
+          </div>
+          <table class="fh-table result-table">
+            <thead>
+              <tr>
+                <th scope="col">SVG内联代码<i id="svgInlineView" class="result-svg-view"></i></th>
+                <th scope="col">Base64代码<i id="svgBase64View" class="result-svg-view"></i></th>
+                <th scope="col">CSS转义<i id="svgEncodeView" class="result-svg-view"></i></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <textarea id="svgInline" class="code-textarea" readonly rows="10"></textarea>
+                  <div class="fh-cell-actions">
+                    <a href="javascript:" class="icon-a" role="button" title="下载" data-rel="svgInline"
+                      data-type="download"><svg width="16" height="16">
+                        <use xlink:href="#arrow-alt-circle-down"></use>
+                      </svg>下载</a>
+                    <a href="javascript:" class="icon-a" role="button" title="复制" data-rel="svgInline"
+                      data-type="copy"><svg width="16" height="16">
+                        <use xlink:href="#clone"></use>
+                      </svg>复制</a>
+                  </div>
+                </td>
+                <td>
+                  <textarea id="svgBase64" class="code-textarea" readonly rows="10"></textarea>
+                  <div class="fh-cell-actions">
+                    <a href="javascript:" class="icon-a" role="button" title="复制" data-rel="svgBase64"
+                      data-type="copy"><svg width="16" height="16">
+                        <use xlink:href="#clone"></use>
+                      </svg>复制</a>
+                  </div>
+                </td>
+                <td>
+                  <textarea id="svgEncode" class="code-textarea" readonly rows="10"></textarea>
+                  <div class="fh-cell-actions">
+                    <a href="javascript:" class="icon-a" role="button" title="复制" data-rel="svgEncode"
+                      data-type="copy"><svg width="16" height="16">
+                        <use xlink:href="#clone"></use>
+                      </svg>复制</a>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </dialog>
+    <!-- ========== 重名导入提示弹窗 ========== -->
+    <dialog id="dialogAlert" class="fh-dialog-container">
+      <div class="fh-dialog fh-dialog-alert">
+        <button type="button" class="fh-dialog-close" aria-label="关闭">&#10005;</button>
+        <p class="fh-dialog-warning">当前导入文件已经存在，请先删除再导入！</p>
+        <div class="fh-dialog-footer">
+          <button type="button" class="fh-dialog-close btn btn-primary">确定</button>
+        </div>
+      </div>
+    </dialog>
+    <footer class="fh-footer"> 图标资源来自 <strong>Font Awesome Free 5.10.1</strong>
+    </footer>
+    <!-- ========== 脚本：依赖库 → 图标数据 → 页面配置 → 还原引擎 → 站点 Header 行为 ========== -->
+    <script src="localforage.min.js?v=20261119"></script>
+    <script src="jszip.min.js?v=20261119"></script>
+    <script src="icons-data.js?v=20261119"></script>
+    <script src="index.js?v=20261119"></script>
+    <script src="sprites-app.js?v=20261119"></script>
+    <script src="../site-header.js?v=20261119"></script>
+  </body>
+
+</html>

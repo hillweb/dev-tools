@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SVGO Studio - SVG 优化与多格式转换导出</title>
+    <!-- Tailwind CSS -->
+    <script src="tailwindcss.js"></script>
+    <!-- Inter & Noto Sans SC 字体 -->
+    <link href="css2.css?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap"
+      rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+
+      /* 透明棋盘格背景 */
+      .checkerboard {
+        background-color: #ffffff;
+        background-image:
+          linear-gradient(45deg, #e5e7eb 25%, transparent 25%),
+          linear-gradient(-45deg, #e5e7eb 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #e5e7eb 75%),
+          linear-gradient(-45deg, transparent 75%, #e5e7eb 75%);
+        background-size: 20px 20px;
+        background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+      }
+
+      .checkerboard-dark {
+        background-color: #1e293b;
+        background-image:
+          linear-gradient(45deg, #334155 25%, transparent 25%),
+          linear-gradient(-45deg, #334155 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #334155 75%),
+          linear-gradient(-45deg, transparent 75%, #334155 75%);
+        background-size: 20px 20px;
+        background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+      }
+
+      /* 自定义滚动条 */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 9999px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+
+      /* 隐藏数字输入框默认箭头 */
+      input[type="number"]::-webkit-inner-spin-button,
+      input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      input[type="number"] {
+        -moz-appearance: textfield;
+      }
+    </style>
+  </head>
+
+  <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+    <!-- 顶部导航栏 -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2"> SVGO Studio <span
+                class="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100">Pro</span>
+            </h1>
+            <p class="text-xs text-slate-500 hidden sm:block">SVG 代码精简优化与多格式高清图片转换导出</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 sm:gap-3">
+          <label for="fileUpload"
+            class="cursor-pointer inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition shadow-sm">
+            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            <span>打开 SVG</span>
+          </label>
+          <input id="fileUpload" type="file" accept=".svg,image/svg+xml" class="hidden" />
+          <!-- 触发格式转换弹窗的主按钮 -->
+          <button id="openConvertModalBtn"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] transition shadow-sm shadow-indigo-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+            <span>转换格式 / 导出图片</span>
+          </button>
+        </div>
+      </div>
+    </header>
+    <!-- 主工作区 -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- 左侧：SVG 源码编辑器与优化选项 -->
+      <section
+        class="lg:col-span-5 flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-4 py-3 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            <h2 class="text-sm font-semibold text-slate-800">SVG 源码 & 优化</h2>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="loadSampleBtn"
+              class="text-xs font-medium text-indigo-600 hover:text-indigo-700 px-2 py-1 rounded-lg hover:bg-indigo-50 transition">
+              加载示例 (GitHub) </button>
+            <button id="copySvgBtn"
+              class="text-xs font-medium text-slate-600 hover:text-slate-800 px-2 py-1 rounded-lg hover:bg-slate-200/60 transition">
+              复制代码 </button>
+          </div>
+        </div>
+        <!-- 快捷优化开关 -->
+        <div class="px-4 py-3 bg-white border-b border-slate-100 flex flex-wrap gap-3 text-xs">
+          <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
+            <input type="checkbox" id="optRemoveComments" checked
+              class="rounded text-indigo-600 focus:ring-indigo-500" />
+            <span class="text-slate-600">移除注释</span>
+          </label>
+          <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
+            <input type="checkbox" id="optRemoveMetadata" checked
+              class="rounded text-indigo-600 focus:ring-indigo-500" />
+            <span class="text-slate-600">清理元数据</span>
+          </label>
+          <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
+            <input type="checkbox" id="optMinifyWhitespace" checked
+              class="rounded text-indigo-600 focus:ring-indigo-500" />
+            <span class="text-slate-600">压缩空白字符</span>
+          </label>
+        </div>
+        <!-- 代码输入区 -->
+        <div class="flex-1 relative min-h-[300px]">
+          <textarea id="svgCodeInput" spellcheck="false" placeholder="在此粘贴您的 SVG 代码，或点击右上角“打开 SVG”上传文件..."
+            class="w-full h-full p-4 font-mono text-xs leading-relaxed text-slate-700 bg-slate-900/[0.02] focus:bg-white focus:outline-none resize-none"></textarea>
+        </div>
+        <!-- 底部统计栏 -->
+        <div
+          class="px-4 py-2.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+          <div class="flex items-center gap-3">
+            <span>原始: <strong id="rawSizeBadge" class="text-slate-700">0 B</strong></span>
+            <span>优化后: <strong id="optSizeBadge" class="text-emerald-600">0 B</strong></span>
+          </div>
+          <span id="savingsBadge" class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-medium">节省 0%</span>
+        </div>
+      </section>
+      <!-- 右侧：实时画布预览区 -->
+      <section
+        class="lg:col-span-7 flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-4 py-3 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <h2 class="text-sm font-semibold text-slate-800">实时画布预览</h2>
+            <span id="workspaceDimBadge"
+              class="text-xs font-mono px-2 py-0.5 rounded-md bg-slate-200/70 text-slate-700"> 检测中... </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="toggleWorkspaceBgBtn"
+              class="text-xs font-medium px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition">
+              切换深色网格 </button>
+          </div>
+        </div>
+        <!-- 预览舞台 -->
+        <div id="workspacePreviewStage"
+          class="flex-1 min-h-[380px] checkerboard flex items-center justify-center p-8 relative overflow-hidden transition-colors">
+          <div id="workspaceSvgContainer"
+            class="max-w-full max-h-[360px] flex items-center justify-center drop-shadow-sm transition-transform duration-200">
+            <!-- 动态渲染 SVG -->
+          </div>
+        </div>
+        <!-- 底部提示与快捷转换条 -->
+        <div class="px-4 py-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+          <p class="text-xs text-slate-500"> 提示：支持自动解析 SVG 的 <code
+              class="px-1 py-0.5 bg-slate-200/70 rounded text-slate-700">width/height</code> 与 <code
+              class="px-1 py-0.5 bg-slate-200/70 rounded text-slate-700">viewBox</code> 尺寸比例。 </p>
+          <button id="openConvertModalBtnSecondary"
+            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition">
+            <span>打开导出配置弹窗</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </button>
+        </div>
+      </section>
+    </main>
+    <!-- Toast 消息提示 -->
+    <div id="toastNotification"
+      class="fixed bottom-5 right-5 z-50 transform translate-y-16 opacity-0 transition-all duration-300 pointer-events-none">
+      <div class="bg-slate-900 text-white text-sm px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2">
+        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+        <span id="toastMessage">操作成功</span>
+      </div>
+    </div>
+    <!-- ===================================================================== -->
+    <!-- 核心功能：转换格式 / 配置尺寸 / 实时预览 / 导出图片 弹窗页面 (Modal)     -->
+    <!-- ===================================================================== -->
+    <div id="convertModalOverlay"
+      class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-sm transition-opacity">
+      <div id="convertModalDialog"
+        class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] transform scale-95 opacity-0 transition-all duration-200">
+        <!-- 弹窗头部 -->
+        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-white">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-900">转换格式与导出配置</h3>
+              <p class="text-xs text-slate-500">实时预览导出效果，自定义输出分辨率与图片格式</p>
+            </div>
+          </div>
+          <button id="closeConvertModalBtn"
+            class="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition" title="关闭弹窗">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <!-- 弹窗主体：左侧预览 + 右侧参数配置 -->
+        <div class="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-12">
+          <!-- 左侧：实时预览区域 (7列) -->
+          <div
+            class="md:col-span-7 bg-slate-100/80 border-b md:border-b-0 md:border-r border-slate-200 p-4 sm:p-6 flex flex-col justify-between min-h-[300px]">
+            <!-- 预览顶部工具栏 -->
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200 shadow-xs">
+                <button type="button" data-bg-mode="checkerboard"
+                  class="bg-mode-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-700 transition">
+                  透明网格 </button>
+                <button type="button" data-bg-mode="white"
+                  class="bg-mode-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+                  纯白 </button>
+                <button type="button" data-bg-mode="dark"
+                  class="bg-mode-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+                  深色 </button>
+              </div>
+              <!-- 原始尺寸信息徽章 -->
+              <div class="text-xs text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-200"> 原始尺寸: <span
+                  id="modalOrigDimText" class="font-mono font-semibold text-slate-700">98 × 96</span>
+              </div>
+            </div>
+            <!-- 居中画布预览框 -->
+            <div id="modalPreviewContainer"
+              class="flex-1 rounded-xl border border-slate-200/90 checkerboard flex items-center justify-center p-6 overflow-hidden relative min-h-[240px]">
+              <!-- 渲染后的图像预览 -->
+              <img id="modalPreviewImage" alt="导出预览"
+                class="max-w-full max-h-[280px] object-contain transition-all duration-150 shadow-xs" />
+              <!-- 悬浮尺寸与格式角标 -->
+              <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between pointer-events-none">
+                <span id="modalOutputSpecBadge"
+                  class="px-2.5 py-1 rounded-lg bg-slate-900/75 backdrop-blur-xs text-white font-mono text-xs shadow-sm">
+                  98 × 96 px · PNG </span>
+                <span id="modalEstimatedSizeBadge"
+                  class="px-2.5 py-1 rounded-lg bg-white/90 backdrop-blur-xs text-slate-700 border border-slate-200/80 font-mono text-xs shadow-sm">
+                  预估大小: ~4.2 KB </span>
+              </div>
+            </div>
+            <!-- 预览底部说明 -->
+            <div class="mt-3 flex items-center justify-between text-xs text-slate-500">
+              <span>所见即所得：预览图已按目标尺寸与背景实时渲染</span>
+              <span id="modalAspectRatioText" class="font-mono text-slate-600">比例 1.02:1</span>
+            </div>
+          </div>
+          <!-- 右侧：配置参数面板 (5列) -->
+          <div class="md:col-span-5 p-5 sm:p-6 bg-white flex flex-col gap-5">
+            <!-- 1. 导出格式选择 -->
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2"> 1. 目标格式 </label>
+              <div class="grid grid-cols-4 gap-2" id="formatSelectorGroup">
+                <button type="button" data-format="png"
+                  class="format-btn py-2 px-2 rounded-xl text-xs font-bold border-2 border-indigo-600 bg-indigo-50 text-indigo-700 transition text-center">
+                  PNG </button>
+                <button type="button" data-format="jpeg"
+                  class="format-btn py-2 px-2 rounded-xl text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition text-center">
+                  JPG </button>
+                <button type="button" data-format="webp"
+                  class="format-btn py-2 px-2 rounded-xl text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition text-center">
+                  WEBP </button>
+                <button type="button" data-format="svg"
+                  class="format-btn py-2 px-2 rounded-xl text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition text-center">
+                  SVG </button>
+              </div>
+            </div>
+            <!-- 2. 配置尺寸 (含锁定比例按钮) -->
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <label class="text-xs font-semibold uppercase tracking-wider text-slate-500"> 2. 配置输出尺寸 (px) </label>
+                <button type="button" id="resetDimBtn"
+                  class="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1 transition">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span>重置原始尺寸</span>
+                </button>
+              </div>
+              <!-- 宽度 + 锁定比例开关 + 高度 -->
+              <div class="flex items-center gap-2">
+                <!-- 宽度输入 -->
+                <div class="flex-1">
+                  <label for="exportWidthInput" class="block text-[11px] font-medium text-slate-500 mb-1">宽度 (W)</label>
+                  <div class="relative">
+                    <input type="number" id="exportWidthInput" min="1" max="8192" value="98"
+                      class="w-full pl-3 pr-8 py-2 text-sm font-mono font-semibold text-slate-800 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition" />
+                    <span
+                      class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none">px</span>
+                  </div>
+                </div>
+                <!-- 锁定比例切换按钮 -->
+                <div class="pt-5">
+                  <button type="button" id="aspectLockBtn" data-locked="true" title="已锁定宽高比（点击切换）"
+                    class="w-9 h-9 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 flex items-center justify-center transition shadow-xs">
+                    <!-- 锁定状态图标 -->
+                    <svg id="iconLocked" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2"
+                      viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <!-- 解锁状态图标 -->
+                    <svg id="iconUnlocked" class="w-4 h-4 hidden text-slate-400" fill="none" stroke="currentColor"
+                      stroke-width="2.2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                </div>
+                <!-- 高度输入 -->
+                <div class="flex-1">
+                  <label for="exportHeightInput" class="block text-[11px] font-medium text-slate-500 mb-1">高度
+                    (H)</label>
+                  <div class="relative">
+                    <input type="number" id="exportHeightInput" min="1" max="8192" value="96"
+                      class="w-full pl-3 pr-8 py-2 text-sm font-mono font-semibold text-slate-800 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition" />
+                    <span
+                      class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none">px</span>
+                  </div>
+                </div>
+              </div>
+              <!-- 快捷倍率按钮 -->
+              <div class="mt-2.5 flex items-center gap-1.5">
+                <span class="text-[11px] text-slate-400 mr-1">倍率:</span>
+                <button type="button" data-scale="0.5"
+                  class="scale-preset-btn flex-1 py-1 rounded-lg text-xs font-mono font-medium bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition">0.5x</button>
+                <button type="button" data-scale="1"
+                  class="scale-preset-btn flex-1 py-1 rounded-lg text-xs font-mono font-medium bg-indigo-50 text-indigo-700 border border-indigo-200 transition">1x</button>
+                <button type="button" data-scale="2"
+                  class="scale-preset-btn flex-1 py-1 rounded-lg text-xs font-mono font-medium bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition">2x</button>
+                <button type="button" data-scale="3"
+                  class="scale-preset-btn flex-1 py-1 rounded-lg text-xs font-mono font-medium bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition">3x</button>
+                <button type="button" data-scale="4"
+                  class="scale-preset-btn flex-1 py-1 rounded-lg text-xs font-mono font-medium bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition">4x</button>
+              </div>
+            </div>
+            <!-- 3. 背景填充设置 (栅格格式可用) -->
+            <div id="bgFillSection">
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2"> 3. 画布背景填充
+              </label>
+              <div class="flex items-center gap-2">
+                <button type="button" id="bgTransparentBtn" data-fill="transparent"
+                  class="fill-preset-btn flex-1 py-1.5 px-2 rounded-xl text-xs font-medium border-2 border-indigo-600 bg-indigo-50 text-indigo-700 transition">
+                  透明 </button>
+                <button type="button" id="bgWhiteBtn" data-fill="#ffffff"
+                  class="fill-preset-btn flex-1 py-1.5 px-2 rounded-xl text-xs font-medium border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition">
+                  纯白 </button>
+                <button type="button" id="bgBlackBtn" data-fill="#0f172a"
+                  class="fill-preset-btn flex-1 py-1.5 px-2 rounded-xl text-xs font-medium border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition">
+                  纯黑 </button>
+                <label
+                  class="relative cursor-pointer w-9 h-8 rounded-xl border border-slate-300 overflow-hidden flex items-center justify-center bg-white shadow-2xs"
+                  title="自定义背景颜色">
+                  <input type="color" id="customBgColorInput" value="#6366f1"
+                    class="opacity-0 absolute inset-0 w-full h-full cursor-pointer" />
+                  <span id="customColorSwatch" class="w-5 h-5 rounded-md bg-indigo-500 border border-black/10"></span>
+                </label>
+              </div>
+            </div>
+            <!-- 4. 图片质量滑块 (JPG / WEBP 显示) -->
+            <div id="qualitySection" class="hidden">
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="qualityRangeInput" class="text-xs font-semibold uppercase tracking-wider text-slate-500"> 4.
+                  压缩质量 </label>
+                <span id="qualityValueLabel" class="text-xs font-mono font-bold text-indigo-600">92%</span>
+              </div>
+              <input type="range" id="qualityRangeInput" min="10" max="100" value="92"
+                class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" />
+            </div>
+            <!-- 5. 导出文件名 -->
+            <div>
+              <label for="exportFilenameInput"
+                class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5"> 导出文件名 </label>
+              <div
+                class="flex items-center rounded-xl border border-slate-300 bg-slate-50 focus-within:bg-white focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 overflow-hidden transition">
+                <input type="text" id="exportFilenameInput" value="icon-export"
+                  class="w-full px-3 py-2 text-sm text-slate-800 bg-transparent focus:outline-none"
+                  placeholder="输入文件名" />
+                <span id="exportExtLabel"
+                  class="px-3 py-2 text-xs font-mono font-semibold text-slate-500 bg-slate-100 border-l border-slate-200">
+                  .png </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- 弹窗底部操作栏 -->
+        <div class="px-5 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3">
+          <button type="button" id="cancelModalBtn"
+            class="px-4 py-2 rounded-xl text-sm font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition">
+            取消 </button>
+          <button type="button" id="confirmExportBtn"
+            class="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] transition shadow-sm shadow-indigo-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span id="confirmExportBtnText">导出 PNG 图片</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- 隐藏的离屏 Canvas 用于高质量栅格化渲染 -->
+    <canvas id="offscreenCanvas" class="hidden"></canvas>
+    <script>
+      /**
+       * 默认内置示例 SVG (GitHub Octocat 矢量图标，对应压缩包中的 svgo/github.svg)
+       */
+      const SAMPLE_GITHUB_SVG = `<svg width="98" height="96" viewBox="0 0 98 96" xmlns="http://www.w3.org/2000/svg">
+  <!-- GitHub Mark Vector -->
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z" fill="#24292f"/>
+</svg>`;
+
+      /**
+       * 应用全局状态管理
+       */
+      const appState = {
+        rawSvg: SAMPLE_GITHUB_SVG,
+        optimizedSvg: SAMPLE_GITHUB_SVG,
+        // 原始 SVG 尺寸与宽高比
+        origWidth: 98,
+        origHeight: 96,
+        aspectRatio: 98 / 96,
+        // 导出配置状态
+        exportWidth: 98,
+        exportHeight: 96,
+        isAspectLocked: true,
+        format: 'png',         // 'png' | 'jpeg' | 'webp' | 'svg'
+        bgFill: 'transparent', // 'transparent' | '#ffffff' | '#0f172a' | hex
+        quality: 0.92,
+        filename: 'github-mark',
+        currentDataUrl: ''
+      };
+
+      // DOM 元素引用缓存
+      const els = {
+        fileUpload: document.getElementById('fileUpload'),
+        svgCodeInput: document.getElementById('svgCodeInput'),
+        loadSampleBtn: document.getElementById('loadSampleBtn'),
+        copySvgBtn: document.getElementById('copySvgBtn'),
+        optRemoveComments: document.getElementById('optRemoveComments'),
+        optRemoveMetadata: document.getElementById('optRemoveMetadata'),
+        optMinifyWhitespace: document.getElementById('optMinifyWhitespace'),
+        rawSizeBadge: document.getElementById('rawSizeBadge'),
+        optSizeBadge: document.getElementById('optSizeBadge'),
+        savingsBadge: document.getElementById('savingsBadge'),
+        workspaceDimBadge: document.getElementById('workspaceDimBadge'),
+        workspacePreviewStage: document.getElementById('workspacePreviewStage'),
+        workspaceSvgContainer: document.getElementById('workspaceSvgContainer'),
+        toggleWorkspaceBgBtn: document.getElementById('toggleWorkspaceBgBtn'),
+        // 弹窗触发与关闭
+        openConvertModalBtn: document.getElementById('openConvertModalBtn'),
+        openConvertModalBtnSecondary: document.getElementById('openConvertModalBtnSecondary'),
+        convertModalOverlay: document.getElementById('convertModalOverlay'),
+        convertModalDialog: document.getElementById('convertModalDialog'),
+        closeConvertModalBtn: document.getElementById('closeConvertModalBtn'),
+        cancelModalBtn: document.getElementById('cancelModalBtn'),
+        // 弹窗内预览与信息
+        modalPreviewContainer: document.getElementById('modalPreviewContainer'),
+        modalPreviewImage: document.getElementById('modalPreviewImage'),
+        modalOrigDimText: document.getElementById('modalOrigDimText'),
+        modalOutputSpecBadge: document.getElementById('modalOutputSpecBadge'),
+        modalEstimatedSizeBadge: document.getElementById('modalEstimatedSizeBadge'),
+        modalAspectRatioText: document.getElementById('modalAspectRatioText'),
+        // 尺寸与比例锁定控件
+        exportWidthInput: document.getElementById('exportWidthInput'),
+        exportHeightInput: document.getElementById('exportHeightInput'),
+        aspectLockBtn: document.getElementById('aspectLockBtn'),
+        iconLocked: document.getElementById('iconLocked'),
+        iconUnlocked: document.getElementById('iconUnlocked'),
+        resetDimBtn: document.getElementById('resetDimBtn'),
+        // 格式、背景、质量、导出
+        bgFillSection: document.getElementById('bgFillSection'),
+        customBgColorInput: document.getElementById('customBgColorInput'),
+        customColorSwatch: document.getElementById('customColorSwatch'),
+        qualitySection: document.getElementById('qualitySection'),
+        qualityRangeInput: document.getElementById('qualityRangeInput'),
+        qualityValueLabel: document.getElementById('qualityValueLabel'),
+        exportFilenameInput: document.getElementById('exportFilenameInput'),
+        exportExtLabel: document.getElementById('exportExtLabel'),
+        confirmExportBtn: document.getElementById('confirmExportBtn'),
+        confirmExportBtnText: document.getElementById('confirmExportBtnText'),
+        offscreenCanvas: document.getElementById('offscreenCanvas'),
+        toastNotification: document.getElementById('toastNotification'),
+        toastMessage: document.getElementById('toastMessage')
+      };
+
+      /**
+       * 核心函数 1：获取 SVG 原始宽高 (width, height) 与宽高比
+       * 优先解析 <svg> 标签的 width / height 属性（支持 px/pt/em/rem/cm/mm/in 等单位换算），
+       * 若缺失则回退解析 viewBox="min-x min-y width height"，若均不存在则使用安全默认值。
+       */
+      function extractSvgDimensions(svgString) {
+        const defaultDims = { width: 300, height: 300 };
+        if (!svgString || !svgString.trim()) return defaultDims;
+
+        try {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(svgString, 'image/svg+xml');
+          const parserError = doc.querySelector('parsererror');
+          if (parserError) return defaultDims;
+
+          const svgEl = doc.querySelector('svg');
+          if (!svgEl) return defaultDims;
+
+          // 单位换算辅助函数（转换为 px）
+          const parseLengthToPx = (val) => {
+            if (!val) return null;
+            const trimmed = val.trim();
+            // 百分比无法直接作为绝对像素，交给 viewBox 处理
+            if (trimmed.endsWith('%')) return null;
+
+            const match = trimmed.match(/^([+-]?(?:\d+\.?\d*|\.\d+))([a-z]*)$/i);
+            if (!match) return null;
+
+            const num = parseFloat(match[1]);
+            const unit = (match[2] || 'px').toLowerCase();
+            if (isNaN(num) || num <= 0) return null;
+
+            const unitFactors = {
+              px: 1,
+              pt: 96 / 72,
+              pc: 16,
+              in: 96,
+              cm: 96 / 2.54,
+              mm: 96 / 25.4,
+              em: 16,
+              rem: 16
+            };
+            return num * (unitFactors[unit] || 1);
+          };
+
+          let width = parseLengthToPx(svgEl.getAttribute('width'));
+          let height = parseLengthToPx(svgEl.getAttribute('height'));
+
+          // 解析 viewBox 属性作为补充或比例参考
+          const viewBoxAttr = svgEl.getAttribute('viewBox');
+          let vbWidth = null;
+          let vbHeight = null;
+
+          if (viewBoxAttr) {
+            const parts = viewBoxAttr
+              .trim()
+              .split(/[\s,]+/)
+              .map(Number);
+            if (parts.length === 4 && parts[2] > 0 && parts[3] > 0) {
+              vbWidth = parts[2];
+              vbHeight = parts[3];
+            }
+          }
+
+          // 情况 A：width 和 height 都缺失，使用 viewBox
+          if (!width && !height && vbWidth && vbHeight) {
+            width = vbWidth;
+            height = vbHeight;
+          }
+          // 情况 B：仅有 width，结合 viewBox 比例推算 height
+          else if (width && !height) {
+            height = vbWidth && vbHeight ? width * (vbHeight / vbWidth) : width;
+          }
+          // 情况 C：仅有 height，结合 viewBox 比例推算 width
+          else if (!width && height) {
+            width = vbWidth && vbHeight ? height * (vbWidth / vbHeight) : height;
+          }
+          // 情况 D：均无有效信息
+          else if (!width && !height) {
+            width = defaultDims.width;
+            height = defaultDims.height;
+          }
+
+          return {
+            width: Math.max(1, Math.round(width)),
+            height: Math.max(1, Math.round(height))
+          };
+        } catch (err) {
+          console.warn('解析 SVG 尺寸失败，使用默认尺寸:', err);
+          return defaultDims;
+        }
+      }
+
+      /**
+       * 核心函数 2：轻量级 SVG 源码优化器
+       */
+      function optimizeSvgCode(raw) {
+        let code = raw || '';
+        if (!code.trim()) return '';
+
+        if (els.optRemoveComments.checked) {
+          code = code.replace(/<!--[\s\S]*?-->/g, '');
+        }
+        if (els.optRemoveMetadata.checked) {
+          code = code.replace(/<metadata[\s\S]*?<\/metadata>/gi, '');
+          code = code.replace(/<\?xml[\s\S]*?\?>/gi, '');
+          code = code.replace(/<!DOCTYPE[\s\S]*?>/gi, '');
+        }
+        if (els.optMinifyWhitespace.checked) {
+          code = code
+            .replace(/>\s+</g, '><')
+            .replace(/\s{2,}/g, ' ')
+            .trim();
+        }
+        return code;
+      }
+
+      /**
+       * 格式化字节大小显示
+       */
+      function formatBytes(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+
+      /**
+       * 显示 Toast 提示
+       */
+      let toastTimer = null;
+      function showToast(msg) {
+        els.toastMessage.textContent = msg;
+        els.toastNotification.classList.remove('translate-y-16', 'opacity-0');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          els.toastNotification.classList.add('translate-y-16', 'opacity-0');
+        }, 2400);
+      }
+
+      /**
+       * 同步主工作区状态（代码输入 -> 优化 -> 提取尺寸 -> 更新主预览）
+       */
+      function syncWorkspaceFromInput() {
+        const raw = els.svgCodeInput.value;
+        appState.rawSvg = raw;
+        appState.optimizedSvg = optimizeSvgCode(raw);
+
+        // 计算体积压缩率
+        const rawBytes = new Blob([raw]).size;
+        const optBytes = new Blob([appState.optimizedSvg]).size;
+        els.rawSizeBadge.textContent = formatBytes(rawBytes);
+        els.optSizeBadge.textContent = formatBytes(optBytes);
+
+        const savedPercent = rawBytes > 0 ? Math.max(0, Math.round(((rawBytes - optBytes) / rawBytes) * 100)) : 0;
+        els.savingsBadge.textContent = `节省 ${savedPercent}%`;
+
+        // 自动获取 SVG 原始宽高
+        const dims = extractSvgDimensions(appState.optimizedSvg || raw);
+        appState.origWidth = dims.width;
+        appState.origHeight = dims.height;
+        appState.aspectRatio = dims.width / dims.height;
+
+        els.workspaceDimBadge.textContent = `${dims.width} × ${dims.height} px`;
+
+        // 渲染主工作区预览
+        if (appState.optimizedSvg.includes('<svg')) {
+          els.workspaceSvgContainer.innerHTML = appState.optimizedSvg;
+          const renderedSvg = els.workspaceSvgContainer.querySelector('svg');
+          if (renderedSvg) {
+            renderedSvg.style.maxWidth = '100%';
+            renderedSvg.style.maxHeight = '320px';
+            renderedSvg.style.width = `${Math.min(dims.width, 320)}px`;
+            renderedSvg.style.height = 'auto';
+          }
+        } else {
+          els.workspaceSvgContainer.innerHTML = `<div class="text-sm text-slate-400">请输入或上传有效的 SVG 代码</div>`;
+        }
+      }
+
+      /**
+       * 核心函数 3：在弹窗中实时渲染导出预览图 (Canvas -> DataURL)
+       */
+      function renderModalPreview() {
+        const svgSource = appState.optimizedSvg || appState.rawSvg;
+        if (!svgSource || !svgSource.includes('<svg')) return;
+
+        const targetW = Math.max(1, Math.min(8192, parseInt(appState.exportWidth, 10) || appState.origWidth));
+        const targetH = Math.max(1, Math.min(8192, parseInt(appState.exportHeight, 10) || appState.origHeight));
+
+        // 更新规格角标
+        const fmtUpper = appState.format.toUpperCase();
+        els.modalOutputSpecBadge.textContent = `${targetW} × ${targetH} px · ${fmtUpper}`;
+        els.modalAspectRatioText.textContent = `比例 ${(targetW / targetH).toFixed(2)}:1`;
+
+        // 规范化 SVG 字符串，确保带有明确的 width/height 与 xmlns 属性，避免部分浏览器 Canvas 绘制空白
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(svgSource, 'image/svg+xml');
+        const svgEl = doc.querySelector('svg');
+        if (!svgEl) return;
+
+        if (!svgEl.getAttribute('xmlns')) {
+          svgEl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        }
+        // 如果原 SVG 没有 viewBox，补上原始尺寸的 viewBox 以确保缩放不裁剪
+        if (!svgEl.getAttribute('viewBox')) {
+          svgEl.setAttribute('viewBox', `0 0 ${appState.origWidth} ${appState.origHeight}`);
+        }
+        svgEl.setAttribute('width', targetW);
+        svgEl.setAttribute('height', targetH);
+
+        const serializedSvg = new XMLSerializer().serializeToString(svgEl);
+
+        // 如果目标格式为 SVG，直接生成预览与大小估算
+        if (appState.format === 'svg') {
+          const svgBlob = new Blob([serializedSvg], { type: 'image/svg+xml;charset=utf-8' });
+          const url = URL.createObjectURL(svgBlob);
+          els.modalPreviewImage.src = url;
+          els.modalEstimatedSizeBadge.textContent = `预估大小: ${formatBytes(svgBlob.size)}`;
+          appState.currentDataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(serializedSvg);
+          return;
+        }
+
+        // 栅格格式 (PNG / JPEG / WEBP)：通过离屏 Canvas 渲染
+        const svgBlob = new Blob([serializedSvg], { type: 'image/svg+xml;charset=utf-8' });
+        const blobUrl = URL.createObjectURL(svgBlob);
+        const img = new Image();
+
+        img.onload = () => {
+          const canvas = els.offscreenCanvas;
+          canvas.width = targetW;
+          canvas.height = targetH;
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, targetW, targetH);
+
+          // 背景填充处理（JPEG 不支持透明，若当前为 transparent 则强制兜底白色）
+          const effectiveFill = appState.format === 'jpeg' && appState.bgFill === 'transparent'
+            ? '#ffffff'
+            : appState.bgFill;
+
+          if (effectiveFill !== 'transparent') {
+            ctx.fillStyle = effectiveFill;
+            ctx.fillRect(0, 0, targetW, targetH);
+          }
+
+          // 开启平滑高质量插值
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, targetW, targetH);
+
+          const mimeMap = {
+            png: 'image/png',
+            jpeg: 'image/jpeg',
+            webp: 'image/webp'
+          };
+          const mimeType = mimeMap[appState.format] || 'image/png';
+          const dataUrl = canvas.toDataURL(mimeType, appState.quality);
+
+          appState.currentDataUrl = dataUrl;
+          els.modalPreviewImage.src = dataUrl;
+
+          // 估算 Base64 转换后的实际文件字节大小
+          const base64Length = dataUrl.split(',')[1]?.length || 0;
+          const estimatedBytes = Math.round((base64Length * 3) / 4);
+          els.modalEstimatedSizeBadge.textContent = `预估大小: ~${formatBytes(estimatedBytes)}`;
+
+          URL.revokeObjectURL(blobUrl);
+        };
+
+        img.onerror = () => {
+          URL.revokeObjectURL(blobUrl);
+        };
+
+        img.src = blobUrl;
+      }
+
+      /**
+       * 打开转换格式弹窗
+       */
+      function openConvertModal() {
+        if (!appState.rawSvg.includes('<svg')) {
+          showToast('请先输入或上传有效的 SVG 文件');
+          return;
+        }
+
+        // 重新获取最新 SVG 的原始宽高并初始化弹窗表单
+        const dims = extractSvgDimensions(appState.optimizedSvg || appState.rawSvg);
+        appState.origWidth = dims.width;
+        appState.origHeight = dims.height;
+        appState.aspectRatio = dims.width / dims.height;
+
+        appState.exportWidth = dims.width;
+        appState.exportHeight = dims.height;
+
+        els.exportWidthInput.value = dims.width;
+        els.exportHeightInput.value = dims.height;
+        els.modalOrigDimText.textContent = `${dims.width} × ${dims.height} px`;
+
+        // 高亮 1x 倍率按钮
+        updateScalePresetHighlight(1);
+
+        // 显示弹窗并执行过渡动画
+        els.convertModalOverlay.classList.remove('hidden');
+        els.convertModalOverlay.classList.add('flex');
+        requestAnimationFrame(() => {
+          els.convertModalDialog.classList.remove('scale-95', 'opacity-0');
+          els.convertModalDialog.classList.add('scale-100', 'opacity-100');
+        });
+
+        renderModalPreview();
+      }
+
+      /**
+       * 关闭转换格式弹窗
+       */
+      function closeConvertModal() {
+        els.convertModalDialog.classList.remove('scale-100', 'opacity-100');
+        els.convertModalDialog.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+          els.convertModalOverlay.classList.add('hidden');
+          els.convertModalOverlay.classList.remove('flex');
+        }, 180);
+      }
+
+      /**
+       * 切换锁定宽高比状态
+       */
+      function toggleAspectLock() {
+        appState.isAspectLocked = !appState.isAspectLocked;
+        els.aspectLockBtn.dataset.locked = String(appState.isAspectLocked);
+
+        if (appState.isAspectLocked) {
+          // 重新以当前宽高计算基准比例，防止跳跃
+          if (appState.exportWidth > 0 && appState.exportHeight > 0) {
+            appState.aspectRatio = appState.exportWidth / appState.exportHeight;
+          }
+          els.aspectLockBtn.classList.remove('border-slate-200', 'bg-slate-50', 'text-slate-400');
+          els.aspectLockBtn.classList.add('border-indigo-200', 'bg-indigo-50', 'text-indigo-600');
+          els.iconLocked.classList.remove('hidden');
+          els.iconUnlocked.classList.add('hidden');
+          els.aspectLockBtn.title = '已锁定宽高比（点击解锁）';
+        } else {
+          els.aspectLockBtn.classList.remove('border-indigo-200', 'bg-indigo-50', 'text-indigo-600');
+          els.aspectLockBtn.classList.add('border-slate-200', 'bg-slate-50', 'text-slate-400');
+          els.iconLocked.classList.add('hidden');
+          els.iconUnlocked.classList.remove('hidden');
+          els.aspectLockBtn.title = '已解锁宽高比（点击锁定）';
+        }
+      }
+
+      /**
+       * 高亮当前匹配的倍率按钮
+       */
+      function updateScalePresetHighlight(activeScale) {
+        document.querySelectorAll('.scale-preset-btn').forEach((btn) => {
+          const scale = parseFloat(btn.dataset.scale);
+          if (scale === activeScale) {
+            btn.className = 'scale-preset-btn flex-1 py-1 rounded-lg text-xs font-mono font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 transition';
+          } else {
+            btn.className = 'scale-preset-btn flex-1 py-1 rounded-lg text-xs font-mono font-medium bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition';
+          }
+        });
+      }
+
+      /**
+       * 更新背景填充 UI 状态
+       */
+      function setExportBgFill(fillValue) {
+        appState.bgFill = fillValue;
+        document.querySelectorAll('.fill-preset-btn').forEach((btn) => {
+          if (btn.dataset.fill === fillValue) {
+            btn.className = 'fill-preset-btn flex-1 py-1.5 px-2 rounded-xl text-xs font-medium border-2 border-indigo-600 bg-indigo-50 text-indigo-700 transition';
+          } else {
+            btn.className = 'fill-preset-btn flex-1 py-1.5 px-2 rounded-xl text-xs font-medium border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition';
+          }
+        });
+        renderModalPreview();
+      }
+
+      /**
+       * 切换导出目标格式
+       */
+      function setExportFormat(fmt) {
+        appState.format = fmt;
+
+        // 更新格式按钮激活样式
+        document.querySelectorAll('.format-btn').forEach((btn) => {
+          if (btn.dataset.format === fmt) {
+            btn.className = 'format-btn py-2 px-2 rounded-xl text-xs font-bold border-2 border-indigo-600 bg-indigo-50 text-indigo-700 transition text-center';
+          } else {
+            btn.className = 'format-btn py-2 px-2 rounded-xl text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition text-center';
+          }
+        });
+
+        // 更新扩展名与主导出按钮文字
+        const extMap = { png: '.png', jpeg: '.jpg', webp: '.webp', svg: '.svg' };
+        const labelMap = { png: 'PNG 图片', jpeg: 'JPG 图片', webp: 'WEBP 图片', svg: 'SVG 矢量图' };
+        els.exportExtLabel.textContent = extMap[fmt];
+        els.confirmExportBtnText.textContent = `导出 ${labelMap[fmt]}`;
+
+        // 控制质量滑块显隐
+        if (fmt === 'jpeg' || fmt === 'webp') {
+          els.qualitySection.classList.remove('hidden');
+        } else {
+          els.qualitySection.classList.add('hidden');
+        }
+
+        // 控制背景填充显隐（SVG 矢量无需画布背景；JPG 自动切换纯白背景）
+        if (fmt === 'svg') {
+          els.bgFillSection.classList.add('opacity-40', 'pointer-events-none');
+        } else {
+          els.bgFillSection.classList.remove('opacity-40', 'pointer-events-none');
+          if (fmt === 'jpeg' && appState.bgFill === 'transparent') {
+            setExportBgFill('#ffffff');
+            return;
+          }
+        }
+
+        renderModalPreview();
+      }
+
+      /**
+       * 执行文件下载
+       */
+      function triggerDownload() {
+        if (!appState.currentDataUrl) return;
+        const rawName = (els.exportFilenameInput.value || 'export').trim();
+        const extMap = { png: 'png', jpeg: 'jpg', webp: 'webp', svg: 'svg' };
+        const fullFilename = `${rawName}.${extMap[appState.format]}`;
+
+        const link = document.createElement('a');
+        link.href = appState.currentDataUrl;
+        link.download = fullFilename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        showToast(`已成功导出 ${fullFilename}`);
+      }
+
+      // ==================== 事件监听器绑定 ====================
+
+      // 1. 源码输入与优化选项联动
+      els.svgCodeInput.addEventListener('input', syncWorkspaceFromInput);
+      [els.optRemoveComments, els.optRemoveMetadata, els.optMinifyWhitespace].forEach((checkbox) => {
+        checkbox.addEventListener('change', syncWorkspaceFromInput);
+      });
+
+      // 2. 上传本地 SVG 文件
+      els.fileUpload.addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          els.svgCodeInput.value = ev.target.result;
+          const baseName = file.name.replace(/\.svg$/i, '') || 'export';
+          els.exportFilenameInput.value = baseName;
+          syncWorkspaceFromInput();
+          showToast(`已加载文件: ${file.name}`);
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+      });
+
+      // 3. 加载内置示例 & 复制代码
+      els.loadSampleBtn.addEventListener('click', () => {
+        els.svgCodeInput.value = SAMPLE_GITHUB_SVG;
+        els.exportFilenameInput.value = 'github-mark';
+        syncWorkspaceFromInput();
+        showToast('已恢复 GitHub 示例 SVG');
+      });
+
+      els.copySvgBtn.addEventListener('click', () => {
+        const tempInput = document.createElement('textarea');
+        tempInput.value = appState.optimizedSvg;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        showToast('已复制优化后的 SVG 代码');
+      });
+
+      // 4. 切换主工作区背景网格深浅
+      let isWorkspaceDark = false;
+      els.toggleWorkspaceBgBtn.addEventListener('click', () => {
+        isWorkspaceDark = !isWorkspaceDark;
+        if (isWorkspaceDark) {
+          els.workspacePreviewStage.classList.remove('checkerboard');
+          els.workspacePreviewStage.classList.add('checkerboard-dark');
+          els.toggleWorkspaceBgBtn.textContent = '切换浅色网格';
+        } else {
+          els.workspacePreviewStage.classList.remove('checkerboard-dark');
+          els.workspacePreviewStage.classList.add('checkerboard');
+          els.toggleWorkspaceBgBtn.textContent = '切换深色网格';
+        }
+      });
+
+      // 5. 打开 / 关闭 转换格式弹窗
+      els.openConvertModalBtn.addEventListener('click', openConvertModal);
+      els.openConvertModalBtnSecondary.addEventListener('click', openConvertModal);
+      els.closeConvertModalBtn.addEventListener('click', closeConvertModal);
+      els.cancelModalBtn.addEventListener('click', closeConvertModal);
+      els.convertModalOverlay.addEventListener('click', (e) => {
+        if (e.target === els.convertModalOverlay) closeConvertModal();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !els.convertModalOverlay.classList.contains('hidden')) {
+          closeConvertModal();
+        }
+      });
+
+      // 6. 弹窗内预览底色切换（透明网格 / 纯白 / 深色）
+      document.querySelectorAll('.bg-mode-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const mode = btn.dataset.bgMode;
+          document.querySelectorAll('.bg-mode-btn').forEach((b) => {
+            b.className = 'bg-mode-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50 transition';
+          });
+          btn.className = 'bg-mode-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-700 transition';
+
+          els.modalPreviewContainer.classList.remove('checkerboard', 'checkerboard-dark', 'bg-white');
+          if (mode === 'checkerboard') els.modalPreviewContainer.classList.add('checkerboard');
+          if (mode === 'white') els.modalPreviewContainer.classList.add('bg-white');
+          if (mode === 'dark') els.modalPreviewContainer.classList.add('checkerboard-dark');
+        });
+      });
+
+      // 7. 宽度输入事件（支持锁定比例自动联动高度）
+      els.exportWidthInput.addEventListener('input', () => {
+        const newW = parseInt(els.exportWidthInput.value, 10);
+        if (!newW || newW <= 0) return;
+        appState.exportWidth = newW;
+
+        if (appState.isAspectLocked) {
+          const linkedH = Math.max(1, Math.round(newW / appState.aspectRatio));
+          appState.exportHeight = linkedH;
+          els.exportHeightInput.value = linkedH;
+        }
+        updateScalePresetHighlight(null);
+        renderModalPreview();
+      });
+
+      // 8. 高度输入事件（支持锁定比例自动联动宽度）
+      els.exportHeightInput.addEventListener('input', () => {
+        const newH = parseInt(els.exportHeightInput.value, 10);
+        if (!newH || newH <= 0) return;
+        appState.exportHeight = newH;
+
+        if (appState.isAspectLocked) {
+          const linkedW = Math.max(1, Math.round(newH * appState.aspectRatio));
+          appState.exportWidth = linkedW;
+          els.exportWidthInput.value = linkedW;
+        }
+        updateScalePresetHighlight(null);
+        renderModalPreview();
+      });
+
+      // 9. 锁定比例按钮 & 重置原始尺寸按钮 & 倍率按钮
+      els.aspectLockBtn.addEventListener('click', toggleAspectLock);
+
+      els.resetDimBtn.addEventListener('click', () => {
+        appState.exportWidth = appState.origWidth;
+        appState.exportHeight = appState.origHeight;
+        appState.aspectRatio = appState.origWidth / appState.origHeight;
+        els.exportWidthInput.value = appState.origWidth;
+        els.exportHeightInput.value = appState.origHeight;
+        updateScalePresetHighlight(1);
+        renderModalPreview();
+        showToast(`已重置为原始尺寸 (${appState.origWidth} × ${appState.origHeight})`);
+      });
+
+      document.querySelectorAll('.scale-preset-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const scale = parseFloat(btn.dataset.scale);
+          const scaledW = Math.max(1, Math.round(appState.origWidth * scale));
+          const scaledH = Math.max(1, Math.round(appState.origHeight * scale));
+          appState.exportWidth = scaledW;
+          appState.exportHeight = scaledH;
+          els.exportWidthInput.value = scaledW;
+          els.exportHeightInput.value = scaledH;
+          updateScalePresetHighlight(scale);
+          renderModalPreview();
+        });
+      });
+
+      // 10. 格式选择、背景填充、压缩质量、确认导出
+      document.querySelectorAll('.format-btn').forEach((btn) => {
+        btn.addEventListener('click', () => setExportFormat(btn.dataset.format));
+      });
+
+      document.querySelectorAll('.fill-preset-btn').forEach((btn) => {
+        btn.addEventListener('click', () => setExportBgFill(btn.dataset.fill));
+      });
+
+      els.customBgColorInput.addEventListener('input', (e) => {
+        const hex = e.target.value;
+        els.customColorSwatch.style.backgroundColor = hex;
+        setExportBgFill(hex);
+      });
+
+      els.qualityRangeInput.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        els.qualityValueLabel.textContent = `${val}%`;
+        appState.quality = val / 100;
+        renderModalPreview();
+      });
+
+      els.confirmExportBtn.addEventListener('click', triggerDownload);
+
+      // 页面初始化：加载默认 GitHub SVG 并同步工作区
+      window.addEventListener('DOMContentLoaded', () => {
+        els.svgCodeInput.value = SAMPLE_GITHUB_SVG;
+        syncWorkspaceFromInput();
+      });
+    </script>
+  </body>
+
+</html>

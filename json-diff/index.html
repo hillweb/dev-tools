@@ -1,0 +1,120 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN" class="custom-scroll">
+
+<head>
+    <title>文本/JSON 比较 - 开发者工具箱</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="data:,">
+    <link rel="stylesheet" href="./static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./static/css/fehelper-tools.css">
+    <link rel="stylesheet" href="./static/css/codemirror.css">
+    <link rel="stylesheet" href="../site-header.css">
+    <link rel="stylesheet" href="index.css">
+    <script type="text/javascript" src="./static/vendor/evalCore.min.js"></script>
+    <script type="text/javascript" src="./static/vendor/vue/vue.js"></script>
+</head>
+
+<body class="fh-modern">
+    <!-- ========== 站点 Header ========== -->
+    <header class="fh-site-header">
+        <div class="fh-site-inner">
+            <a href="../index.html" class="fh-site-brand">
+                <span class="fh-site-logo"></span>
+                <span class="fh-site-name">开发工具箱</span>
+            </a>
+            <nav aria-label="站点导航">
+                <ul class="fh-site-nav">
+                    <li><a href="../index.html">首页</a></li>
+                    <li><a href="../json-format/index.html">JSON格式化</a></li>
+                    <li><a href="../json-diff/index.html" class="is-active">JSON 文本比较</a></li>
+                    <li><a href="../obfuscator/index.html">JS 代码混淆</a></li>
+                    <li><a href="../code-beautify/index.html">代码美化</a></li>
+                    <li><a href="../code-compress/index.html">代码压缩</a></li>
+                    <li><a href="../en-decode/index.html">信息编码转换</a></li>
+                    <li><a href="../uuid/index.html">UUID生成</a></li>
+                    <li><a href="../svgo/index.html">SVG压缩</a></li>
+                    <li><a href="../svgico/index.html">SVG图标</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="wrapper wp-json" id="pageContainer">
+        <div class="panel panel-default" style="margin-bottom: 0px;">
+            <div class="panel-heading">
+                <h3 class="panel-title">文本/JSON 比较 <small>本地运行，数据不上传</small></h3>
+            </div>
+        </div>
+
+        <div class="panel-body mod-json">
+            <div class="json-examples">
+                <div class="compare-mode-switch" role="tablist" aria-label="对比模式">
+                    <button type="button" class="mode-button" :class="{ active: compareMode === 'json' }" @click="setCompareMode('json')">JSON 对比</button>
+                    <button type="button" class="mode-button" :class="{ active: compareMode === 'text' }" @click="setCompareMode('text')">任意文本</button>
+                </div>
+                <span>{{ compareMode === 'json' ? '示例 JSON：' : '示例文本：' }}</span>
+                <a href="#" class="example-button" v-for="example in activeExamples" :key="example.key" :data-example="example.key" @click.prevent="fillExample(example.key)">{{ example.label }}</a>
+                <div class="diff-actions" role="group" aria-label="对比操作">
+                    <button type="button" class="diff-action-button" @click="formatBothSides" :disabled="compareMode !== 'json'">美化</button>
+                    <button type="button" class="diff-action-button" @click="clearBothSides" :disabled="!hasContent">清空</button>
+                    <button type="button" class="diff-action-button diff-action-primary" @click="compareContent">对比</button>
+                </div>
+                <span class="x-error result-display" v-bind:class="{'x-hlt': errorHighlight}" v-if="!!errorMessage">
+                    <span class="x-hlt">Tips：</span>
+                    <span v-if="leftSideError" class="x-hlt1">左侧</span>
+                    <span v-if="rightSideError" class="x-hlt1">右侧</span>
+                    <span>{{ errorMessage }}</span>
+                </span>
+            </div>
+            <aside class="json-diff-summary" v-if="compareMode === 'json' && diffSummary.length" role="region" aria-live="polite" aria-label="结构化差异摘要">
+                <div class="json-diff-summary-title">
+                    <div class="json-diff-summary-heading">
+                        <strong>结构化差异</strong>
+                        <span>{{ diffSummary.length }} 处</span>
+                    </div>
+                    <button type="button" class="json-diff-summary-close" @click="clearDiffSummary" aria-label="关闭结构化差异摘要">×</button>
+                </div>
+                <div class="diff-actions" v-if="summaryPageCount > 1" role="group" aria-label="摘要分页">
+                    <button type="button" class="diff-action-button" @click="changeSummaryPage(-1)" :disabled="summaryPage === 0">上一页</button>
+                    <span>{{ summaryPage + 1 }} / {{ summaryPageCount }}</span>
+                    <button type="button" class="diff-action-button" @click="changeSummaryPage(1)" :disabled="summaryPage + 1 >= summaryPageCount">下一页</button>
+                </div>
+                <div class="json-diff-summary-list" ref="summaryList">
+                    <div class="json-diff-summary-item" v-for="item in visibleDiffSummary" :key="item.id">
+                        <span class="json-diff-op" :class="'json-diff-op-' + item.op">{{ item.label }}</span>
+                        <code>{{ item.path }}</code>
+                        <span class="json-diff-from" v-if="item.from">从 {{ item.from }}</span>
+                        <span class="json-diff-value" v-if="item.valuePreview">{{ item.valuePreview }}</span>
+                    </div>
+                </div>
+            </aside>
+            <div class="col-md-6 box-wrapper-left">
+                <textarea class="form-control mod-textarea" id="jsonSourceLeft" ref="srcLeft" placeholder="左侧粘贴待比对内容"></textarea>
+            </div>
+            <div class="col-md-6 box-wrapper-right">
+                <textarea class="form-control mod-textarea" id="jsonSourceRight" ref="srcRight" placeholder="右侧粘贴待比对内容"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script src="./static/vendor/jquery/jquery-3.3.1.min.js"></script>
+    <script src="./static/vendor/codemirror/codemirror.js"></script>
+    <script src="./static/vendor/codemirror/javascript.js"></script>
+    <script src="./static/vendor/codemirror/active-line.js"></script>
+    <script src="./static/vendor/codemirror/matchbrackets.js"></script>
+    <script src="./static/vendor/codemirror/placeholder.js"></script>
+    <script src="./static/vendor/codemirror/formatting.js"></script>
+    <script src="./static/vendor/json-diff/backbone-events.min.js"></script>
+    <script src="./static/vendor/json-diff/json-patch-duplex.min.js"></script>
+    <script src="./static/vendor/json-diff/json-source-map.js"></script>
+    <script src="./static/vendor/json-diff/json-diff.js"></script>
+    <script src="../json-format/json-auto-utils.js"></script>
+    <script src="./js-adapter.js"></script>
+    <script src="./diff-utils.js"></script>
+    <script src="./index.js"></script>
+    <script src="./index-event-handler.js"></script>
+    <script src="../site-header.js"></script>
+</body>
+
+</html>

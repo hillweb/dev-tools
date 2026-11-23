@@ -1,0 +1,133 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN" class="custom-scroll">
+
+<head>
+    <title>代码压缩工具 - 开发者工具箱</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="data:,">
+    <link rel="stylesheet" href="./static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./static/css/fehelper-tools.css">
+    <link rel="stylesheet" href="./static/vendor/codemirror/codemirror.css">
+    <link rel="stylesheet" href="../site-header.css">
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body class="fh-modern">
+    <!-- ========== 站点 Header ========== -->
+    <header class="fh-site-header">
+        <div class="fh-site-inner">
+            <a href="../index.html" class="fh-site-brand">
+                <span class="fh-site-logo"></span>
+                <span class="fh-site-name">开发工具箱</span>
+            </a>
+            <nav aria-label="站点导航">
+                <ul class="fh-site-nav">
+                    <li><a href="../index.html">首页</a></li>
+                    <li><a href="../json-format/index.html">JSON格式化</a></li>
+                    <li><a href="../json-diff/index.html">JSON 文本比较</a></li>
+                    <li><a href="../obfuscator/index.html">JS 代码混淆</a></li>
+                    <li><a href="../code-beautify/index.html">代码美化</a></li>
+                    <li><a href="../code-compress/index.html" class="is-active">代码压缩</a></li>
+                    <li><a href="../en-decode/index.html">信息编码转换</a></li>
+                    <li><a href="../uuid/index.html">UUID生成</a></li>
+                    <li><a href="../svgo/index.html">SVG压缩</a></li>
+                    <li><a href="../svgico/index.html">SVG图标</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="wrapper fh-compress-tool layout-left-right" id="pageContainer">
+        <div class="panel panel-default" style="margin-bottom: 0px;">
+            <div class="panel-heading">
+                <h3 class="panel-title">代码压缩工具 <small>本地运行，数据不上传</small></h3>
+            </div>
+        </div>
+
+        <div class="panel-body mod-code">
+            <div class="code-toolbar" role="toolbar" aria-label="压缩操作">
+                <div class="code-tool-group" role="group" aria-label="代码类型">
+                    <button id="codeTypeHtml" class="code-tool-btn" type="button"
+                        :class="{'is-active': codeType === 'html'}" @click="changeCodeType('html')">HTML</button>
+                    <button id="codeTypeJs" class="code-tool-btn" type="button"
+                        :class="{'is-active': codeType === 'js'}" @click="changeCodeType('js')">JavaScript</button>
+                    <button id="codeTypeCss" class="code-tool-btn" type="button"
+                        :class="{'is-active': codeType === 'css'}" @click="changeCodeType('css')">CSS</button>
+                </div>
+
+                <div class="code-tool-group code-tool-examples" role="group" aria-label="快速示例">
+                    <button class="code-tool-btn" type="button" @click="loadExample('html')">HTML示例</button>
+                    <button class="code-tool-btn" type="button" @click="loadExample('js')">JS示例</button>
+                    <button class="code-tool-btn" type="button" @click="loadExample('css')">CSS示例</button>
+                </div>
+
+                <button id="btnFormat" class="code-tool-btn code-tool-primary" type="button" @click="compress">压缩</button>
+            </div>
+
+            <main class="fh-workspace">
+                <section class="fh-pane fh-input-pane">
+                    <div class="fh-pane-header">
+                        <div>
+                            <h2>源代码</h2>
+                            <span class="fh-pane-meta">{{codeTypeLabel}}</span>
+                        </div>
+                        <span class="fh-pane-hint">INPUT</span>
+                    </div>
+                    <div class="code-pane-body code-input-body">
+                        <textarea class="form-control mod-textarea" id="codeSource" ref="codeSource"
+                            v-model="sourceContent" placeholder="在这里粘贴需要进行压缩的代码"></textarea>
+                    </div>
+                </section>
+
+                <section class="fh-pane fh-result-pane">
+                    <div class="fh-pane-header">
+                        <div>
+                            <h2>压缩结果</h2>
+                            <span class="fh-pane-meta" v-html="compressInfo"></span>
+                        </div>
+                        <div class="fh-pane-actions">
+                            <button id="btnCopy" class="fh-pane-action" type="button" @click="copyToClipboard(resultContent)"
+                                v-show="!!resultContent && !hasError">复制结果</button>
+                        </div>
+                    </div>
+                    <div class="code-pane-body code-result-body" v-show="!!resultContent">
+                        <textarea class="form-control mod-textarea code-result-textarea"
+                            :class="{'x-error': hasError}" ref="jfContent" readonly
+                            placeholder="压缩后的代码将在这里显示" v-model="resultContent"></textarea>
+                    </div>
+                    <div class="code-pane-body code-result-empty" v-show="!resultContent">
+                        <span>等待压缩</span>
+                    </div>
+                </section>
+            </main>
+
+            <div id="fehelper_alertmsg" v-show="toastVisible">{{toastMessage}}</div>
+        </div>
+    </div>
+
+    <script src="./static/vendor/vue/vue.js"></script>
+    <script src="./static/vendor/uglifyjs3/minify.js"></script>
+    <script src="./static/vendor/uglifyjs3/utils.js"></script>
+    <script src="./static/vendor/uglifyjs3/ast.js"></script>
+    <script src="./static/vendor/uglifyjs3/parse.js"></script>
+    <script src="./static/vendor/uglifyjs3/transform.js"></script>
+    <script src="./static/vendor/uglifyjs3/scope.js"></script>
+    <script src="./static/vendor/uglifyjs3/output.js"></script>
+    <script src="./static/vendor/uglifyjs3/compress.js"></script>
+    <script src="uglifyjs3.js"></script>
+    <script src="./static/vendor/codemirror/codemirror.js"></script>
+    <script src="./static/vendor/codemirror/javascript.js"></script>
+    <script src="./static/vendor/codemirror/css.js"></script>
+    <script src="./static/vendor/codemirror/xml.js"></script>
+    <script src="./static/vendor/codemirror/htmlmixed.js"></script>
+    <script src="./static/vendor/codemirror/active-line.js"></script>
+    <script src="./static/vendor/codemirror/matchbrackets.js"></script>
+    <script src="./static/vendor/codemirror/placeholder.js"></script>
+    <script src="htmlminifier.min.js"></script>
+    <script src="examples.js"></script>
+    <script src="index.js"></script>
+    <script src="../site-header.js"></script>
+</body>
+
+</html>

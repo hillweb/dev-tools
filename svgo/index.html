@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVGO 完整引擎版 SVG 压缩工具</title>
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="../site-header.css" />
+  </head>
+
+  <body>
+    <!-- ========== 站点 Header ========== -->
+    <header class="fh-site-header">
+      <div class="fh-site-inner">
+        <a href="../index.html" class="fh-site-brand">
+          <span class="fh-site-logo"></span>
+          <span class="fh-site-name">开发工具箱</span>
+        </a>
+        <nav aria-label="站点导航">
+          <ul class="fh-site-nav">
+            <li><a href="../index.html">首页</a></li>
+            <li><a href="../json-format/index.html">JSON格式化</a></li>
+            <li><a href="../json-diff/index.html">JSON 文本比较</a></li>
+            <li><a href="../obfuscator/index.html">JS 代码混淆</a></li>
+            <li><a href="../code-beautify/index.html">代码美化</a></li>
+            <li><a href="../code-compress/index.html">代码压缩</a></li>
+            <li><a href="../en-decode/index.html">信息编码转换</a></li>
+            <li><a href="../uuid/index.html">UUID生成</a></li>
+            <li><a href="../svgo/index.html" class="is-active">SVG压缩</a></li>
+            <li><a href="../svgico/index.html">SVG图标</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <div class="container">
+      <div class="header">
+        <h1>SVGO 完整内核 SVG 压缩|转换工具</h1>
+        <span id="engineStatus" class="status">正在加载 SVGO 核心引擎...</span>
+      </div>
+      <div class="drop-zone hidden" id="dropZone"> 点击选择 SVG 文件，或将多个 SVG 拖放到此处（支持直接在左侧粘贴代码） <input type="file"
+          id="fileInput" accept=".svg" multiple class="hidden">
+      </div>
+      <div class="workspace">
+        <div>
+          <div class="tabs">
+            <span style="font-weight:bold;font-size:14px;line-height:30px;">原始 SVG 代码</span>
+            <div>
+              <button class="btn" id="uploadBtn">上传SVG文件</button>
+            </div>
+          </div>
+          <textarea id="inputCode" placeholder="在此粘贴 <svg>...</svg> 代码... 或将多个 SVG 拖放到此处"></textarea>
+          <div class="stats">
+            <span id="origSize">原始大小: 0 B</span>
+            <div>
+              <button class="btn" id="convertBtn" disabled>转换格式</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="code">压缩后代码</button>
+            <button class="tab-btn" data-tab="preview">渲染对比</button>
+            <button class="tab-btn" data-tab="base64">Base64</button>
+            <button class="tab-btn" data-tab="css">CSS Data URI</button>
+          </div>
+          <textarea id="outputCode" readonly></textarea>
+          <div id="previewBox" class="preview-box hidden"></div>
+          <div class="stats">
+            <span id="compSize">压缩后: 0 B</span>
+            <div>
+              <button class="btn" id="copyBtn">复制</button>
+              <button class="btn" id="downloadBtn">下载SVG</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="options">
+        <label>坐标小数精度： <select id="optPrecision">
+            <option value="0">0 位（极限压缩）</option>
+            <option value="1">1 位</option>
+            <option value="2" selected>2 位（推荐）</option>
+            <option value="3">3 位（高精度）</option>
+          </select>
+        </label>
+        <label class="option-toggle hidden"><input type="checkbox" id="optMultipass" checked><span>多轮深度优化
+            (Multipass)</span></label>
+        <label class="option-toggle"><input type="checkbox" id="optMergePaths" checked><span>合并相同样式路径</span></label>
+        <label class="option-toggle"><input type="checkbox" id="optClenIds" checked><span>清理 id</span></label>
+        <label class="option-toggle"><input type="checkbox" id="optShapToPath" checked><span>形状转路径</span></label>
+        <label class="option-toggle"><input type="checkbox" id="optRemoveFill"><span>移除所有 fill 属性</span></label>
+        <label class="option-toggle"><input type="checkbox" id="optRemoveStyle"><span>移除 style 属性</span></label>
+        <label class="option-toggle"><input type="checkbox" id="optAbsolutePath"><span>绝对路径</span></label>
+        <label class="option-toggle"><input type="checkbox" id="optMergeSprite"><span>多文件合并为 Sprites</span></label>
+      </div>
+    </div>
+    <!-- ========== 转换导出弹窗 ========== -->
+    <div class="modal-mask hidden" id="convertModal">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="convertModalTitle">
+        <div class="modal-header">
+          <h3 id="convertModalTitle">导出图片</h3>
+          <button class="modal-close" id="convertModalClose" type="button" aria-label="关闭">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="convert-preview">
+            <canvas id="convertPreviewCanvas"></canvas>
+          </div>
+          <div class="convert-config">
+            <div class="field-row">
+              <label for="convertFormat">格式</label>
+              <select id="convertFormat">
+                <option value="png">PNG（支持透明背景）</option>
+                <option value="jpeg">JPG（白色背景）</option>
+                <option value="ico">ICO（最大 256px）</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <label for="convertWidth">宽度</label>
+              <input type="number" id="convertWidth" min="1" max='4096' step="1">
+              <span>px</span>
+            </div>
+            <div class="field-row">
+              <label for="convertHeight">高度</label>
+              <input type="number" id="convertHeight" min="1" max='4096' step="1">
+              <span>px</span>
+            </div>
+            <label class="lock-row">
+              <input type="checkbox" id="convertLockRatio" checked>
+              <span>锁定宽高比例</span>
+              <button class="btn btn-reset" id="convertResetBtn" type="button">恢复原始尺寸</button>
+            </label>
+            <p class="convert-note" id="convertNote"></p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div>
+            <span class="convert-note">预计文件大小： </span>
+            <span class="convert-note" id="convertSizeNote"></span>
+          </div>
+          <div>
+            <button class="btn btn-secondary" id="convertCancelBtn" type="button">取消</button>
+            <button class="btn" id="convertConfirmBtn" type="button">转换并下载</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src='index.js'></script>
+  </body>
+
+</html>

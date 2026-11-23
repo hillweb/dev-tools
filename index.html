@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="custom-scroll">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>开发者工具箱 - 前端开发必备工具集</title>
+        <link rel="shortcut icon" type="image/svg+xml" href="./tool.svg">
+        <link rel="icon" sizes="any" mask="" type="image/svg+xml" href="./tool.svg">
+        <link rel="stylesheet" href="index.css">
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🛠️ 开发者工具箱</h1>
+                <p>一套纯静态、开箱即用的前端开发辅助工具集</p>
+                <div class="subtitle-badge">v2026.11 · 30+ 实用工具 · 零依赖部署</div>
+            </div>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 搜索工具名称或功能描述...">
+            </div>
+            <!-- 常用收藏cat-fav -->
+            <div class="category cat-fav" data-cat="fav">
+                <h2 class="category-title">✨ 常用收藏</h2>
+                <div class="tools-grid">
+                    <a class="tool-card" href="json-format/index.html">
+                        <div class="tool-icon">⒥</div>
+                        <div class="tool-info">
+                            <div class="tool-name">JSON 格式化</div>
+                            <div class="tool-desc">自动检测格式化、手动格式化、乱码解码、排序、BigInt、节点编辑、下载</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="obfuscator/index.html">
+                        <div class="tool-icon">🛡️</div>
+                        <div class="tool-info">
+                            <div class="tool-name">JS 代码混淆</div>
+                            <div class="tool-desc">纯静态 JS 混淆，字符串数组/控制流平坦化/自保护/RC4 加密，离线可用</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="uuid/index.html">
+                        <div class="tool-icon">🆔</div>
+                        <div class="tool-info">
+                            <div class="tool-name">UUID 生成</div>
+                            <div class="tool-desc">UUID v4 批量随机生成，支持大小写与去连字符，本机运行不上传数据</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="svgo/index.html">
+                        <div class="tool-icon">☷</div>
+                        <div class="tool-info">
+                            <div class="tool-name">SVG压缩|转换</div>
+                            <div class="tool-desc">基于SVGO的SVG压缩工具，支持SVG文件压缩、SVG代码压缩、SVG转换为PNG图片</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <!-- 代码处理 -->
+            <div class="category cat-code" data-cat="code">
+                <h2 class="category-title">✍ 代码处理</h2>
+                <div class="tools-grid">
+                    <a class="tool-card" href="code-beautify/index.html">
+                        <div class="tool-icon">✡</div>
+                        <div class="tool-info">
+                            <div class="tool-name">代码美化</div>
+                            <div class="tool-desc">支持 JavaScript、CSS、HTML、XML、SQL 等多语言代码美化</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="code-compress/index.html">
+                        <div class="tool-icon">♯</div>
+                        <div class="tool-info">
+                            <div class="tool-name">代码压缩</div>
+                            <div class="tool-desc">支持 HTML、JavaScript、CSS 代码压缩，Web 开发必备</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="en-decode/index.html">
+                        <div class="tool-icon">♨</div>
+                        <div class="tool-info">
+                            <div class="tool-name">编解码工具</div>
+                            <div class="tool-desc">Unicode、UTF-8、Base64、MD5、Hex、Gzip、JWT 等多格式编解码</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="obfuscator/index.html">
+                        <div class="tool-icon">🛡️</div>
+                        <div class="tool-info">
+                            <div class="tool-name">JS 代码混淆</div>
+                            <div class="tool-desc">纯静态 JS 混淆，字符串数组/控制流平坦化/自保护/RC4 加密，离线可用</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="regexp/index.html">
+                        <div class="tool-icon">✙</div>
+                        <div class="tool-info">
+                            <div class="tool-name">正则表达式速查</div>
+                            <div class="tool-desc">JS/Python/PHP/Java 多语言正则速查，验证类、提取类、替换类等常用模式</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <!-- JSON 相关 -->
+            <div class="category cat-json" data-cat="json">
+                <h2 class="category-title">📋 JSON 相关</h2>
+                <div class="tools-grid">
+                    <a class="tool-card" href="json-format/index.html">
+                        <div class="tool-icon">⒥</div>
+                        <div class="tool-info">
+                            <div class="tool-name">JSON 格式化</div>
+                            <div class="tool-desc">自动检测格式化、手动格式化、乱码解码、排序、BigInt、节点编辑、下载</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="json-diff/index.html">
+                        <div class="tool-icon">☷</div>
+                        <div class="tool-info">
+                            <div class="tool-name">JSON 比对</div>
+                            <div class="tool-desc">支持两个 JSON 内容的自动键值比较，高亮差异点，判断 JSON 合法性</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <!-- 数据格式 -->
+            <div class="category cat-data" data-cat="data">
+                <h2 class="category-title">📊 数据格式</h2>
+                <div class="tools-grid">
+                    <a class="tool-card" href="excel2json/index.html">
+                        <div class="tool-icon">Ⓗ</div>
+                        <div class="tool-info">
+                            <div class="tool-name">Excel 转 JSON</div>
+                            <div class="tool-desc">将 Excel/CSV 数据转换为 JSON、XML、MySQL、PHP 等结构化格式</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="image-base64/index.html">
+                        <div class="tool-icon">▤</div>
+                        <div class="tool-info">
+                            <div class="tool-name">图片与 Base64 互转</div>
+                            <div class="tool-desc">链接/截图粘贴转 Base64，支持 Base64 数据逆转图片</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="html2markdown/index.html">
+                        <div class="tool-icon">ⓜ</div>
+                        <div class="tool-info">
+                            <div class="tool-name">Markdown 转换</div>
+                            <div class="tool-desc">HTML 转 Markdown，支持 PDF 格式下载，所见即所得编辑器</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="svg-converter/index.html">
+                        <div class="tool-icon">⇲</div>
+                        <div class="tool-info">
+                            <div class="tool-name">SVG 转图片</div>
+                            <div class="tool-desc">SVG 转 PNG/JPG/WEBP，自定义尺寸，支持拖放和 URL 导入</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="trans-color/index.html">
+                        <div class="tool-icon">▶</div>
+                        <div class="tool-info">
+                            <div class="tool-name">颜色转换</div>
+                            <div class="tool-desc">HEX ↔ RGB ↔ HSL 颜色格式互转，支持实时预览</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="trans-radix/index.html">
+                        <div class="tool-icon">❖</div>
+                        <div class="tool-info">
+                            <div class="tool-name">进制转换</div>
+                            <div class="tool-desc">2~36 进制任意转换，如十进制 ↔ 二进制、八进制 ↔ 十六进制</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="uuid/index.html">
+                        <div class="tool-icon">🆔</div>
+                        <div class="tool-info">
+                            <div class="tool-name">UUID 生成</div>
+                            <div class="tool-desc">UUID v4 批量随机生成，支持大小写与去连字符，本机运行不上传数据</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <!-- 时间日期 -->
+            <div class="category cat-time" data-cat="time">
+                <h2 class="category-title">⏰ 时间日期</h2>
+                <div class="tools-grid">
+                    <a class="tool-card" href="timestamp/index.html">
+                        <div class="tool-icon">♖</div>
+                        <div class="tool-info">
+                            <div class="tool-name">时间戳转换</div>
+                            <div class="tool-desc">本地时间 ↔ 时间戳（秒/毫秒），世界时区切换，多时区时钟展示</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="datetime-calc/index.html">
+                        <div class="tool-icon">⏱️</div>
+                        <div class="tool-info">
+                            <div class="tool-name">时间戳计算器</div>
+                            <div class="tool-desc">多种时间格式解析、批量转换、时区转换、数据库格式生成</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="crontab/index.html">
+                        <div class="tool-icon">½</div>
+                        <div class="tool-info">
+                            <div class="tool-name">Crontab 生成器</div>
+                            <div class="tool-desc">简易 Crontab 表达式生成工具，分时日月周高亮提示</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <!-- 网络/接口 -->
+            <div class="category cat-net" data-cat="net">
+                <h2 class="category-title">🌐 网络/接口</h2>
+                <div class="tools-grid">
+                    <a class="tool-card" href="postman/index.html">
+                        <div class="tool-icon">☯</div>
+                        <div class="tool-info">
+                            <div class="tool-name">简易 Postman</div>
+                            <div class="tool-desc">接口调试工具，支持 GET/POST/HEAD 请求，JSON 内容自动格式化</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="websocket/index.html">
+                        <div class="tool-icon">ⓦ</div>
+                        <div class="tool-info">
+                            <div class="tool-name">WebSocket 测试</div>
+                            <div class="tool-desc">WebSocket 接口连接测试、消息发送测试、结果分析</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="qr-code/index.html">
+                        <div class="tool-icon">▣</div>
+                        <div class="tool-info">
+                            <div class="tool-name">二维码生成/解码</div>
+                            <div class="tool-desc">自定义颜色和 icon 的二维码生成，多种模式二维码解码</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <!-- 图形/图片 -->
+            <div class="category cat-graphic" data-cat="graphic">
+                <h2 class="category-title">🎨 图形/图片</h2>
+                <div class="tools-grid">
+                    <a class="tool-card" href="chart-maker/index.html">
+                        <div class="tool-icon">📊</div>
+                        <div class="tool-info">
+                            <div class="tool-name">图表制作</div>
+                            <div class="tool-desc">柱状图、折线图、饼图等多种图表，快速生成可视化数据图并导出</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="poster-maker/index.html">
+                        <div class="tool-icon">🖼️</div>
+                        <div class="tool-info">
+                            <div class="tool-name">海报生成</div>
+                            <div class="tool-desc">朋友圈、小红书等多种模板，自定义文字图片配色，快速生成营销海报</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="naotu/index.html">
+                        <div class="tool-icon">Ψ</div>
+                        <div class="tool-info">
+                            <div class="tool-name">思维导图</div>
+                            <div class="tool-desc">轻量便捷，随想随用，自动保存，支持导出图片</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <!-- 开发辅助 -->
+            <div class="category cat-dev" data-cat="dev">
+                <h2 class="category-title">🧰 开发辅助</h2>
+                <div class="tools-grid">
+                    <a class="tool-card" href="mock-data/index.html">
+                        <div class="tool-icon">⟡</div>
+                        <div class="tool-info">
+                            <div class="tool-name">Mock 数据生成</div>
+                            <div class="tool-desc">快速生成测试数据，多种类型，自定义字段和输出格式</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="password/index.html">
+                        <div class="tool-icon">♆</div>
+                        <div class="tool-info">
+                            <div class="tool-name">随机密码生成</div>
+                            <div class="tool-desc">数字、大小写字母、特殊符号随机组合，支持指定长度</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="sticky-notes/index.html">
+                        <div class="tool-icon">✐</div>
+                        <div class="tool-info">
+                            <div class="tool-name">便签笔记</div>
+                            <div class="tool-desc">浏览器便签笔记，目录分类管理，一键导出/导入</div>
+                        </div>
+                    </a>
+                    <a class="tool-card" href="aiagent/index.html">
+                        <div class="tool-icon">🤖</div>
+                        <div class="tool-info">
+                            <div class="tool-name">AI 智能助手</div>
+                            <div class="tool-desc">代码编写/重构/方案设计/查资料/分析等 AI 辅助开发</div>
+                            <span class="external-badge">需外部服务</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <!-- 其他工具 -->
+            <div class="category cat-other" data-cat="other">
+                <h2 class="category-title">📌 实用小工具</h2>
+                <div class="tools-grid">
+                    <a class="tool-card" href="loan-rate/index.html">
+                        <div class="tool-icon">$</div>
+                        <div class="tool-info">
+                            <div class="tool-name">贷款利率计算</div>
+                            <div class="tool-desc">贷款还款利率计算器，按月呈现还款计划，支持反推实际利率</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div class="footer">
+                <p>所有工具均为纯前端实现，可直接静态部署到任意服务器</p>
+                <p style="margin-top: 6px;">🖥️ 支持部署到 GitHub Pages / Vercel / Netlify / Nginx 等</p>
+            </div>
+        </div>
+        <script>
+            // 搜索过滤
+            (function () {
+                const input = document.getElementById('searchInput');
+                const categories = document.querySelectorAll('.category');
+                const cards = document.querySelectorAll('.tool-card');
+
+                input.addEventListener('input', function (e) {
+                    const kw = e.target.value.trim().toLowerCase();
+                    let visibleCategories = 0;
+
+                    if (!kw) {
+                        categories.forEach(c => c.classList.remove('hide'));
+                        cards.forEach(c => c.classList.remove('hide'));
+                        return;
+                    }
+
+                    categories.forEach(cat => {
+                        let hasVisibleCard = false;
+                        const catCards = cat.querySelectorAll('.tool-card');
+                        catCards.forEach(card => {
+                            const text = card.textContent.toLowerCase();
+                            if (text.includes(kw)) {
+                                card.classList.remove('hide');
+                                hasVisibleCard = true;
+                            } else {
+                                card.classList.add('hide');
+                            }
+                        });
+                        if (hasVisibleCard) {
+                            cat.classList.remove('hide');
+                            visibleCategories++;
+                        } else {
+                            cat.classList.add('hide');
+                        }
+                    });
+                });
+            })();
+        </script>
+    </body>
+
+</html>

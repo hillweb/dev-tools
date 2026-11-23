@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JS Obfuscator - 纯静态版</title>
+  <link rel="stylesheet" href="index.css" />
+  <link rel="stylesheet" href="../site-header.css" />
+</head>
+
+<body>
+  <!-- ========== 站点 Header：品牌 + 横向导航 ========== -->
+  <header class="fh-site-header">
+    <div class="fh-site-inner">
+      <a href="../index.html" class="fh-site-brand">
+        <span class="fh-site-logo"></span>
+        <span class="fh-site-name">开发工具箱</span>
+      </a>
+      <nav aria-label="站点导航">
+        <ul class="fh-site-nav">
+            <li><a href="../index.html">首页</a></li>
+                    <li><a href="../index.html">首页</a></li>
+                    <li><a href="../json-format/index.html">JSON格式化</a></li>
+                    <li><a href="../json-diff/index.html">JSON 文本比较</a></li>
+                    <li><a href="../obfuscator/index.html" class="is-active">JS 代码混淆</a></li>
+                    <li><a href="../code-beautify/index.html">代码美化</a></li>
+                    <li><a href="../code-compress/index.html">代码压缩</a></li>
+                    <li><a href="../en-decode/index.html">信息编码转换</a></li>
+                    <li><a href="../uuid/index.html">UUID生成</a></li>
+                    <li><a href="../svgo/index.html">SVG压缩</a></li>
+                    <li><a href="../svgico/index.html">SVG图标</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="fh-app">
+    <header class="fh-tool-header">
+      <div class="fh-header-stack">
+        <div class="fh-brand-block">
+          <h1>JS 代码混淆</h1>
+        </div>
+        <p class="fh-mode-note">基于 javascript-obfuscator，字符串数组 / 控制流平坦化 / 自保护，代码不会离开本机。</p>
+      </div>
+      <div class="fh-header-right">
+        <button class="btn btn-secondary" id="btnLoadExample">加载示例</button>
+        <button class="btn btn-secondary" id="btnClear">清空</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="editor-area">
+        <div class="tabs">
+          <button class="tab active" data-tab="input">输入代码</button>
+          <button class="tab" data-tab="output">混淆结果</button>
+        </div>
+        <div class="panels">
+          <div class="panel active" id="panel-input">
+            <textarea id="input"
+              placeholder="// 在此粘贴你的 JavaScript 代码&#10;// 或点击右上角「加载示例」&#10;&#10;function hello(name) {&#10;  console.log('Hello, ' + name + '!');&#10;  return true;&#10;}&#10;&#10;hello('World');"
+              spellcheck="false"></textarea>
+          </div>
+          <div class="panel" id="panel-output">
+            <textarea id="output" placeholder="混淆后的代码会显示在这里…" spellcheck="false" readonly></textarea>
+          </div>
+        </div>
+        <div class="toolbar">
+          <button class="btn btn-primary" id="btnObfuscate">
+            <span id="btnText">混淆</span>
+          </button>
+          <button class="btn btn-secondary" id="btnCopy" disabled>复制结果</button>
+          <button class="btn btn-secondary" id="btnDownload" disabled>下载 .js</button>
+          <span class="status" id="status">就绪 · 代码不会离开本机</span>
+        </div>
+      </div>
+
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          混淆选项
+          <button class="btn btn-secondary" id="btnResetOpts" style="padding:4px 10px;font-size:0.75rem">重置</button>
+        </div>
+
+        <div class="presets">
+          <button class="preset active" data-preset="default">Default</button>
+          <button class="preset" data-preset="low">Low</button>
+          <button class="preset" data-preset="medium">Medium</button>
+          <button class="preset" data-preset="high">High</button>
+        </div>
+
+        <!-- Basic -->
+        <div class="option-group">
+          <div class="option-group-title">基础</div>
+          <div class="option-body">
+            <div class="opt">
+              <label><input type="checkbox" id="opt-compact" checked> Compact（压缩）</label>
+            </div>
+            <div class="opt">
+              <label><input type="checkbox" id="opt-simplify" checked> Simplify</label>
+            </div>
+            <div class="opt">
+              <label>标识符命名</label>
+              <select id="opt-identifierNamesGenerator">
+                <option value="mangled" selected>mangled</option>
+                <option value="mangled-shuffled">mangled-shuffled</option>
+                <option value="hexadecimal">hexadecimal</option>
+              </select>
+            </div>
+            <div class="opt">
+              <label><input type="checkbox" id="opt-renameGlobals"> 重命名全局变量</label>
+            </div>
+            <div class="opt">
+              <label>Target</label>
+              <select id="opt-target">
+                <option value="node" selected>node</option>
+                <option value="browser">browser</option>
+                <option value="browser-no-eval">browser-no-eval</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- String Array -->
+        <div class="option-group">
+          <div class="option-group-title">字符串数组</div>
+          <div class="option-body">
+            <div class="opt">
+              <label><input type="checkbox" id="opt-stringArray" checked> 启用 String Array</label>
+            </div>
+            <div class="opt">
+              <label>编码</label>
+              <select id="opt-stringArrayEncoding">
+                <option value="none">none</option>
+                <option value="base64" selected>base64</option>
+                <option value="rc4">rc4</option>
+              </select>
+            </div>
+            <div class="opt">
+              <label>Threshold</label>
+              <input type="range" id="opt-stringArrayThreshold" min="0" max="1" step="0.05" value="0.75">
+              <span class="range-val" id="val-stringArrayThreshold">0.75</span>
+            </div>
+            <div class="opt">
+              <label><input type="checkbox" id="opt-stringArrayRotate" checked> Rotate</label>
+            </div>
+            <div class="opt">
+              <label><input type="checkbox" id="opt-stringArrayShuffle" checked> Shuffle</label>
+            </div>
+            <div class="opt">
+              <label><input type="checkbox" id="opt-splitStrings"> Split Strings</label>
+            </div>
+            <div class="opt">
+              <label>Split 长度</label>
+              <input type="number" id="opt-splitStringsChunkLength" min="1" value="10" style="width:70px">
+            </div>
+          </div>
+        </div>
+
+        <!-- Transforms -->
+        <div class="option-group">
+          <div class="option-group-title">代码变换</div>
+          <div class="option-body">
+            <div class="opt">
+              <label><input type="checkbox" id="opt-controlFlowFlattening"> 控制流平坦化</label>
+            </div>
+            <div class="opt">
+              <label>CFF Threshold</label>
+              <input type="range" id="opt-controlFlowFlatteningThreshold" min="0" max="1" step="0.05" value="0.75">
+              <span class="range-val" id="val-controlFlowFlatteningThreshold">0.75</span>
+            </div>
+            <div class="opt">
+              <label><input type="checkbox" id="opt-deadCodeInjection"> 死代码注入</label>
+            </div>
+            <div class="opt">
+              <label>DCI Threshold</label>
+              <input type="range" id="opt-deadCodeInjectionThreshold" min="0" max="1" step="0.05" value="0.4">
+              <span class="range-val" id="val-deadCodeInjectionThreshold">0.4</span>
+            </div>
+            <div class="opt">
+              <label><input type="checkbox" id="opt-numbersToExpressions"> 数字转表达式</label>
+            </div>
+            <div class="opt">
+              <label><input type="checkbox" id="opt-transformObjectKeys"> 转换对象键</label>
+            </div>
+            <div class="opt">
+              <label><input type="checkbox" id="opt-unicodeEscapeSequence"> Unicode 转义</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Protection -->
+        <div class="option-group">
+          <div class="option-group-title">防护</div>
+          <div class="option-body">
+            <div class="opt">
+              <label><input type="checkbox" id="opt-selfDefending"> Self Defending</label>
+            </div>
+            <div class="opt">
+              <label><input type="checkbox" id="opt-debugProtection"> Debug Protection</label>
+            </div>
+            <div class="opt">
+              <label><input type="checkbox" id="opt-disableConsoleOutput"> 禁用 console</label>
+            </div>
+          </div>
+        </div>
+
+        <p class="hint">
+          基于开源库 <a href="https://github.com/javascript-obfuscator/javascript-obfuscator" target="_blank"
+            rel="noopener">javascript-obfuscator</a>。<br>
+          所有处理均在浏览器本地完成，代码不会上传。<br>
+          高强度选项（控制流 + 死代码）会显著增大体积并降低运行性能。
+        </p>
+      </aside>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- javascript-obfuscator 官方浏览器构建（已本地化到本工具目录，纯静态离线运行，无需网络） -->
+  <script src="javascript-obfuscator.browser.js"></script>
+  <script src="index.js"></script>
+  <script src="../site-header.js"></script>
+</body>
+
+</html>

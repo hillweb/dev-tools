@@ -1,0 +1,122 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN" class="custom-scroll">
+
+<head>
+    <title>代码美化工具 - 开发者工具箱</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="data:,">
+    <link rel="stylesheet" href="./static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./static/css/fehelper-tools.css">
+    <link rel="stylesheet" href="./static/vendor/prism/prism.css">
+    <link rel="stylesheet" href="../site-header.css">
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body class="fh-modern">
+    <!-- ========== 站点 Header ========== -->
+    <header class="fh-site-header">
+        <div class="fh-site-inner">
+            <a href="../index.html" class="fh-site-brand">
+                <span class="fh-site-logo"></span>
+                <span class="fh-site-name">开发工具箱</span>
+            </a>
+            <nav aria-label="站点导航">
+                <ul class="fh-site-nav">
+                    <li><a href="../index.html">首页</a></li>
+                    <li><a href="../json-format/index.html">JSON格式化</a></li>
+                    <li><a href="../json-diff/index.html">JSON 文本比较</a></li>
+                    <li><a href="../obfuscator/index.html">JS 代码混淆</a></li>
+                    <li><a href="../code-beautify/index.html" class="is-active">代码美化</a></li>
+                    <li><a href="../code-compress/index.html">代码压缩</a></li>
+                    <li><a href="../en-decode/index.html">信息编码转换</a></li>
+                    <li><a href="../uuid/index.html">UUID生成</a></li>
+                    <li><a href="../svgo/index.html">SVG压缩</a></li>
+                    <li><a href="../svgico/index.html">SVG图标</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="wrapper fh-beautify-tool layout-left-right" id="pageContainer">
+        <div class="panel panel-default" style="margin-bottom: 0px;">
+            <div class="panel-heading">
+                <h3 class="panel-title">代码美化工具 <small>本地运行，数据不上传</small></h3>
+            </div>
+        </div>
+
+        <div class="panel-body mod-code">
+            <div class="code-toolbar" role="toolbar" aria-label="美化操作">
+                <div class="code-tool-group" role="group" aria-label="语言类型">
+                    <button id="codeTypeJs" class="code-tool-btn" type="button"
+                        :class="{'is-active': selectedType === 'Javascript'}" @click="selectedType = 'Javascript'">JavaScript</button>
+                    <button id="codeTypeCss" class="code-tool-btn" type="button"
+                        :class="{'is-active': selectedType === 'CSS'}" @click="selectedType = 'CSS'">CSS</button>
+                    <button id="codeTypeHTML" class="code-tool-btn" type="button"
+                        :class="{'is-active': selectedType === 'HTML'}" @click="selectedType = 'HTML'">HTML</button>
+                    <button id="codeTypeXML" class="code-tool-btn" type="button"
+                        :class="{'is-active': selectedType === 'XML'}" @click="selectedType = 'XML'">XML</button>
+                    <button id="codeTypeSQL" class="code-tool-btn" type="button"
+                        :class="{'is-active': selectedType === 'SQL'}" @click="selectedType = 'SQL'">SQL</button>
+                </div>
+
+                <div class="code-tool-group code-tool-examples" role="group" aria-label="快速示例">
+                    <button class="code-tool-btn" type="button" @click="loadExample('js')">JS示例</button>
+                    <button class="code-tool-btn" type="button" @click="loadExample('css')">CSS示例</button>
+                    <button class="code-tool-btn" type="button" @click="loadExample('html')">HTML示例</button>
+                    <button class="code-tool-btn" type="button" @click="loadExample('xml')">XML示例</button>
+                    <button class="code-tool-btn" type="button" @click="loadExample('sql')">SQL示例</button>
+                </div>
+
+                <button id="btnFormat" class="code-tool-btn code-tool-primary" type="button" @click="format">格式化</button>
+            </div>
+
+            <main class="fh-workspace">
+                <section class="fh-pane fh-input-pane">
+                    <div class="fh-pane-header">
+                        <div>
+                            <h2>源代码</h2>
+                            <span class="fh-pane-meta" id="codeTitle">{{selectedType}}</span>
+                        </div>
+                        <span class="fh-pane-hint">INPUT</span>
+                    </div>
+                    <div class="code-pane-body code-input-body">
+                        <textarea class="form-control mod-textarea" id="codeSource" ref="codeSource"
+                            v-model="sourceContent"
+                            placeholder="粘贴需要进行美化的 JavaScript、CSS、HTML、XML 或 SQL 代码"></textarea>
+                    </div>
+                </section>
+
+                <section class="fh-pane fh-result-pane">
+                    <div class="fh-pane-header">
+                        <div>
+                            <h2>美化结果</h2>
+                            <span class="fh-pane-meta" v-show="showCopyBtn">{{resultLineCount}} 行</span>
+                        </div>
+                        <div class="fh-pane-actions">
+                            <button id="btnCopy" class="fh-pane-action" type="button" @click="copy"
+                                v-show="showCopyBtn">复制结果</button>
+                        </div>
+                    </div>
+                    <div class="code-pane-body code-result-body" id="jfContent" ref="jfContentBox"
+                        v-html="resultContent" v-show="showCopyBtn"></div>
+                    <div class="code-pane-body code-result-empty" v-show="!showCopyBtn">
+                        <span>等待格式化</span>
+                    </div>
+                </section>
+            </main>
+
+        </div>
+    </div>
+
+    <script src="./static/vendor/vue/vue.js"></script>
+    <script src="beautify.js"></script>
+    <script src="beautify-css.js"></script>
+    <script src="beautify-html.js"></script>
+    <script src="beautify-vk.js"></script>
+    <script src="./static/vendor/prism/prism.js"></script>
+    <script src="index.js"></script>
+    <script src="../site-header.js"></script>
+</body>
+
+</html>
