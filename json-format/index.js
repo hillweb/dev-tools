@@ -157,6 +157,7 @@
             jsonFormattedSource: '',
             errorMsg: '',
             jsonActionReady: false,
+            inputBlank: false,
             tableViewReady: false,
             errorJsonCode: '',
             errorPos: '',
@@ -186,9 +187,9 @@
             jsonPathCopyNotice: '',
             jsonPathCopyNoticeTimer: null,
             inputCopyBusy: false,
-            inputCopyNotice: '',
-            inputCopyNoticeError: false,
-            inputCopyNoticeTimer: null,
+            // inputCopyNotice: '',
+            // inputCopyNoticeError: false,
+            // inputCopyNoticeTimer: null,
             showTableViewModal: false,
             tableViewError: '',
             tableViewMode: 'grid',
@@ -287,8 +288,8 @@
             document.removeEventListener('fh-json-result-change', this.handleJsonResultChange);
             document.removeEventListener('keydown', this.handleGlobalKeydown, true);
             document.removeEventListener('click', this.handleWindowNoteOutsideClick, true);
-            window.clearTimeout(this.jsonPathCopyNoticeTimer);
-            window.clearTimeout(this.inputCopyNoticeTimer);
+            // window.clearTimeout(this.jsonPathCopyNoticeTimer);
+            // window.clearTimeout(this.inputCopyNoticeTimer);
         },
         computed: {
             sortLabel() {
@@ -428,6 +429,7 @@
 
             resetResultActions() {
                 // Invalid/empty input and explicit transforms also invalidate pending decoding.
+                if (editor.getValue().length > 0) this.inputBlank = true;
                 formatRevision++;
                 Formatter.cancelPendingFormat();
                 this.jsonActionReady = false;
@@ -451,6 +453,7 @@
                 if (!source || this.errorMsg) {
                     return;
                 }
+                this.inputBlank = true;
                 try {
                     const jsonObj = parseWithBigInt(source);
                     this.jsonActionReady = jsonObj !== null && typeof jsonObj === 'object';
@@ -781,7 +784,10 @@
                 }
                 source = source.replace(/\n/gm, ' ');
                 if (!source) {
+                    inputBlank = false;
                     return false;
+                } else {
+                    inputBlank = true;
                 }
 
                 // JSONP形式下的callback name
@@ -899,7 +905,7 @@
 
                         this.$nextTick(() => {
                             this.updateWrapperHeight();
-                        })
+                        });
                     }
                 }
 
@@ -923,16 +929,22 @@
             },
 
             showInputCopyNotice: function (message, isError) {
-                window.clearTimeout(this.inputCopyNoticeTimer);
-                this.inputCopyNotice = message || '';
-                this.inputCopyNoticeError = !!isError;
-                if (!this.inputCopyNotice) {
-                    return;
+                toast(message);
+                if (isError) {
+                    document.querySelector('#fehelper_alertmsg p').classList.add('error');
+                } else {
+                    document.querySelector('#fehelper_alertmsg p').classList.remove('error');
                 }
-                this.inputCopyNoticeTimer = window.setTimeout(() => {
-                    this.inputCopyNotice = '';
-                    this.inputCopyNoticeError = false;
-                }, 2400);
+                // window.clearTimeout(this.inputCopyNoticeTimer);
+                // this.inputCopyNotice = message || '';
+                // this.inputCopyNoticeError = !!isError;
+                // if (!this.inputCopyNotice) {
+                //     return;
+                // }
+                // this.inputCopyNoticeTimer = window.setTimeout(() => {
+                //     this.inputCopyNotice = '';
+                //     this.inputCopyNoticeError = false;
+                // }, 2400);
             },
 
             getCompressedJsonSource: function () {
@@ -1179,8 +1191,8 @@
                     editor.setValue(jsonTxt);
                     this.$nextTick(() => {
                         this.fireChange = true;
-                    })
-                })
+                    });
+                });
             },
 
             openOptionsPage: function (event) {
@@ -1208,9 +1220,24 @@
                 editor.setValue(demo);
                 this.$nextTick(() => {
                     this.format();
-                })
+                });
             },
-
+            triggerUpload: function () {
+                this.$refs.fileInputRef.click();
+            },
+            handleFileChange: function (event) {
+                const file = event.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    editor.setValue(e.target.result);
+                };
+                reader.readAsText(file);
+                event.target.value = '';
+            },
+            reset: function () {
+                editor.setValue('');
+                this.inputBlank = false;
+            },
             nestedEscapeParseFn: function () {
                 this.$nextTick(() => {
                     this.setNestedEscapeParse(this.nestedEscapeParse);

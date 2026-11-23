@@ -58,13 +58,12 @@ Date.prototype.format = function (pattern) {
  */
 window.toast = function (content) {
     window.clearTimeout(window.feHelperAlertMsgTid);
-    var safe = String(content).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    var safe = String(content).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     let elAlertMsg = document.querySelector("#fehelper_alertmsg");
     if (!elAlertMsg) {
         let elWrapper = document.createElement('div');
         elWrapper.innerHTML = '<div id="fehelper_alertmsg" style="position:fixed;bottom:25px;left:5px;z-index:1000000">' +
-            '<p style="background:#000;display:inline-block;color:#fff;text-align:center;' +
-            'padding:10px 10px;margin:0 auto;font-size:14px;border-radius:4px;">' + safe + '</p></div>';
+            '<p>' + safe + '</p></div>';
         elAlertMsg = elWrapper.childNodes[0];
         document.body.appendChild(elAlertMsg);
     } else {
@@ -74,7 +73,7 @@ window.toast = function (content) {
 
     window.feHelperAlertMsgTid = window.setTimeout(function () {
         elAlertMsg.style.display = 'none';
-    }, 1000);
+    }, 1500);
 };
 
 
@@ -103,7 +102,7 @@ window.Formatter = (function () {
     let largeJsonNodeViewEnabled = false;
     let prettyJsonSelectionActive = false;
     let prettyJsonShortcutBound = false;
-    
+
     // 单例Worker实例
     let workerInstance = null;
     let workerPending = false;
@@ -118,7 +117,7 @@ window.Formatter = (function () {
         if (workerPending && workerInstance) {
             workerInstance.onmessage = null;
             workerInstance.onerror = null;
-            try { workerInstance.terminate(); } catch (_) {}
+            try { workerInstance.terminate(); } catch (_) { }
             workerInstance = null;
         }
         workerPending = false;
@@ -144,7 +143,7 @@ window.Formatter = (function () {
         }
     };
 
-    let sanitizeJsonDownloadFilename = function(note, fallbackPrefix, maxLength) {
+    let sanitizeJsonDownloadFilename = function (note, fallbackPrefix, maxLength) {
         let fallback = fallbackPrefix || 'FeHelper';
         let value = String(note || '')
             .trim()
@@ -164,7 +163,7 @@ window.Formatter = (function () {
         return value || fallback;
     };
 
-    let getJsonDownloadBasename = function() {
+    let getJsonDownloadBasename = function () {
         let dt = (new Date()).format('yyyyMMddHHmmss');
         let note = '';
         try {
@@ -392,7 +391,7 @@ window.Formatter = (function () {
                 return true;
             }
         }
-        
+
         // 在沙盒模式下显示JSON内容
         function showJsonContentInSandbox() {
             // 查找 #formattedJson 节点
@@ -401,10 +400,10 @@ window.Formatter = (function () {
                 console.error('未找到 #formattedJson 节点');
                 return;
             }
-            
+
             // 清空 #formattedJson 的内容
             formattedJsonDiv.innerHTML = '';
-            
+
             // 创建下载提示和内容显示区域
             let downloadInfo = document.createElement('div');
             downloadInfo.style.cssText = `
@@ -433,7 +432,7 @@ window.Formatter = (function () {
                     font-size: 14px;
                 ">复制全部内容</button>
             `;
-            
+
             // 创建文本区域
             let textarea = document.createElement('textarea');
             textarea.style.cssText = `
@@ -450,14 +449,14 @@ window.Formatter = (function () {
             `;
             textarea.value = safeContent;
             textarea.readOnly = true;
-            
+
             // 将内容添加到 #formattedJson 节点
             formattedJsonDiv.appendChild(downloadInfo);
             formattedJsonDiv.appendChild(textarea);
-            
+
             console.log('JSON内容已显示在 #formattedJson 节点中');
         }
-        
+
         // 显示JSON内容模态框（非沙盒模式）
         function showJsonContent() {
             let modal = document.createElement('div');
@@ -474,7 +473,7 @@ window.Formatter = (function () {
                 justify-content: center;
                 font-family: Arial, sans-serif;
             `;
-            
+
             modal.innerHTML = `
                 <div style="
                     background: white;
@@ -525,17 +524,17 @@ window.Formatter = (function () {
                     </div>
                 </div>
             `;
-            
+
             document.body.appendChild(modal);
-            
+
             // 点击背景关闭
-            modal.addEventListener('click', function(e) {
+            modal.addEventListener('click', function (e) {
                 if (e.target === modal) {
                     document.body.removeChild(modal);
                 }
             });
         }
-        
+
         // 尝试下载
         function tryDownload() {
             try {
@@ -543,39 +542,39 @@ window.Formatter = (function () {
                 aLink.download = filename + '.json';
                 aLink.href = URL.createObjectURL(blob);
                 aLink.style.display = 'none';
-                
+
                 document.body.appendChild(aLink);
                 aLink.click();
-                
+
                 setTimeout(() => {
                     if (document.body.contains(aLink)) {
                         document.body.removeChild(aLink);
                     }
                     URL.revokeObjectURL(aLink.href);
                 }, 100);
-                
+
                 return true;
             } catch (error) {
                 console.error('下载失败:', error);
                 return false;
             }
         }
-        
+
         // 下载按钮点击事件
         button.click(function (e) {
             e.preventDefault();
             // Node edits and window notes may change after the toolbar was built.
             filename = getJsonDownloadBasename();
             safeContent = String(cachedJsonString || content || '').replace(/"__FH_PRESERVE_INTEGER_KEY__(\d+)":/g, '"$1":');
-            blob = new Blob([safeContent], {type: 'application/octet-stream'});
-            
+            blob = new Blob([safeContent], { type: 'application/octet-stream' });
+
             // 如果在沙盒化环境中，在 #formattedJson 中显示内容
             if (isSandboxed()) {
                 console.log('检测到沙盒化环境，在 #formattedJson 中显示内容');
                 showJsonContentInSandbox();
                 return;
             }
-            
+
             // 尝试Chrome扩展API
             if (typeof chrome !== 'undefined' && chrome.downloads) {
                 try {
@@ -621,7 +620,7 @@ window.Formatter = (function () {
         document.execCommand('Copy');
         document.body.removeChild(input);
 
-        toast(successMsg || 'Json片段复制成功，随处粘贴可用！')
+        toast(successMsg || 'Json片段复制成功，随处粘贴可用！');
     };
 
 
@@ -682,16 +681,16 @@ window.Formatter = (function () {
                 }
             }
         }
-        
+
         // 向上遍历所有祖先节点
-        current.parents('.item').each(function() {
+        current.parents('.item').each(function () {
             let $this = $(this);
-            
+
             // 跳过根节点
             if ($this.hasClass('rootItem')) {
                 return false; // 终止遍历
             }
-            
+
             if ($this.hasClass('item-array-element')) {
                 // 这是数组元素，使用data-array-index属性
                 let index = $this.attr('data-array-index');
@@ -741,7 +740,7 @@ window.Formatter = (function () {
         let jfPathContainer = $('#jsonPathContainer');
         if (!jfPathContainer.length) {
             jfPathContainer = $('<div id="jsonPathContainer"/>').prependTo(jfStatusBar);
-            
+
             // 创建语言选择下拉框
             let langSelector = $('<select id="jsonPathLangSelector" title="选择编程语言格式">' +
                 '<option value="javascript">JavaScript</option>' +
@@ -753,13 +752,13 @@ window.Formatter = (function () {
                 '<option value="ruby">Ruby</option>' +
                 '<option value="swift">Swift</option>' +
                 '</select>').appendTo(jfPathContainer);
-            
+
             // 创建路径显示区域
             let jfPath = $('<span id="jsonPath"/>').appendTo(jfPathContainer);
             $('<span id="jsonSelectionMeta"/>').appendTo(jfPathContainer);
-            
+
             // 绑定语言切换事件
-            langSelector.on('change', function() {
+            langSelector.on('change', function () {
                 // 保存选择的语言到本地存储（如果可用）
                 try {
                     localStorage.setItem('fehelper_json_path_lang', $(this).val());
@@ -771,7 +770,7 @@ window.Formatter = (function () {
                 let currentKeys = jfPathContainer.data('currentKeys') || [];
                 _updateJsonPath(currentKeys, $(this).val());
             });
-            
+
             // 从本地存储恢复语言选择（如果可用）
             let savedLang = 'javascript';
             try {
@@ -782,10 +781,10 @@ window.Formatter = (function () {
             }
             langSelector.val(savedLang);
         }
-        
+
         // 保存当前的keys到容器的data属性中，供语言切换时使用
         jfPathContainer.data('currentKeys', validKeys);
-        
+
         // 获取当前选择的语言
         let selectedLang = $('#jsonPathLangSelector').val() || 'javascript';
         _updateJsonPath(validKeys, selectedLang);
@@ -793,12 +792,12 @@ window.Formatter = (function () {
     };
 
     // 根据不同编程语言格式化JSON路径
-    let _updateJsonPath = function(keys, language) {
+    let _updateJsonPath = function (keys, language) {
         let path = _formatJsonPath(keys, language);
         $('#jsonPath').text('当前节点：' + path);
     };
 
-    let _updateStatusBarSelectionInfo = function(curEl) {
+    let _updateStatusBarSelectionInfo = function (curEl) {
         let info = _getSelectionInfo(curEl);
         let meta = (info.type || 'node') + (info.preview ? ' / ' + info.preview : '');
         $('#jsonSelectionMeta')
@@ -807,13 +806,13 @@ window.Formatter = (function () {
     };
 
     // 格式化JSON路径为不同编程语言格式
-    let _formatJsonPath = function(keys, language) {
+    let _formatJsonPath = function (keys, language) {
         if (!keys.length) {
             return _getLanguageRoot(language);
         }
 
         let path = '';
-        
+
         switch (language) {
             case 'javascript':
                 path = '$';
@@ -834,7 +833,7 @@ window.Formatter = (function () {
                     }
                 }
                 break;
-                
+
             case 'php':
                 path = '$data';
                 for (let i = 0; i < keys.length; i++) {
@@ -848,7 +847,7 @@ window.Formatter = (function () {
                     }
                 }
                 break;
-                
+
             case 'python':
                 path = 'data';
                 for (let i = 0; i < keys.length; i++) {
@@ -868,7 +867,7 @@ window.Formatter = (function () {
                     }
                 }
                 break;
-                
+
             case 'java':
                 path = 'jsonObject';
                 for (let i = 0; i < keys.length; i++) {
@@ -883,7 +882,7 @@ window.Formatter = (function () {
                     }
                 }
                 break;
-                
+
             case 'csharp':
                 path = 'jsonObject';
                 for (let i = 0; i < keys.length; i++) {
@@ -897,7 +896,7 @@ window.Formatter = (function () {
                     }
                 }
                 break;
-                
+
             case 'golang':
                 path = 'data';
                 for (let i = 0; i < keys.length; i++) {
@@ -912,7 +911,7 @@ window.Formatter = (function () {
                     }
                 }
                 break;
-                
+
             case 'ruby':
                 path = 'data';
                 for (let i = 0; i < keys.length; i++) {
@@ -932,7 +931,7 @@ window.Formatter = (function () {
                     }
                 }
                 break;
-                
+
             case 'swift':
                 path = 'jsonObject';
                 for (let i = 0; i < keys.length; i++) {
@@ -946,17 +945,17 @@ window.Formatter = (function () {
                     }
                 }
                 break;
-                
+
             default:
                 // 默认使用JavaScript格式
                 return _formatJsonPath(keys, 'javascript');
         }
-        
+
         return path;
     };
 
     // 获取不同语言的根对象表示
-    let _getLanguageRoot = function(language) {
+    let _getLanguageRoot = function (language) {
         switch (language) {
             case 'javascript': return '$';
             case 'php': return '$data';
@@ -1042,7 +1041,7 @@ window.Formatter = (function () {
                 // Rebuild indices and discard stale page cursors after deletion.
                 _renderPagedJsonTree();
                 document.dispatchEvent(new window.CustomEvent('fh-json-result-change', {
-                    detail: {source: cachedJsonString}
+                    detail: { source: cachedJsonString }
                 }));
                 return;
             }
@@ -1060,7 +1059,7 @@ window.Formatter = (function () {
             _clearJsonSearch();
             _clearSelection();
             document.dispatchEvent(new window.CustomEvent('fh-json-result-change', {
-                detail: {source: cachedJsonString}
+                detail: { source: cachedJsonString }
             }));
             _emitFormatReady();
             return;
@@ -1073,7 +1072,7 @@ window.Formatter = (function () {
             } catch (e) {
                 txt = getJsonText(el);
             }
-            let blob = new Blob([txt], {type: 'application/octet-stream'});
+            let blob = new Blob([txt], { type: 'application/octet-stream' });
             let filename = getJsonDownloadBasename();
 
             // A local Blob download needs no extension-wide downloads permission.
@@ -1136,7 +1135,7 @@ window.Formatter = (function () {
             return;
         }
 
-        _selectJsonElement(selected, {scroll: false});
+        _selectJsonElement(selected, { scroll: false });
     };
 
     let _getSelectedJsonElement = function () {
@@ -1301,7 +1300,7 @@ window.Formatter = (function () {
         selected.addClass('x-selected');
 
         if (opts.scroll !== false && selected[0] && selected[0].scrollIntoView) {
-            selected[0].scrollIntoView({block: 'center', inline: 'nearest'});
+            selected[0].scrollIntoView({ block: 'center', inline: 'nearest' });
         }
 
         _toogleStatusBar(selected, true);
@@ -1572,7 +1571,7 @@ window.Formatter = (function () {
             }
         });
 
-        jfContent.on('click.fhJsonTree', '.fh-json-page, .fh-json-full-string', function(ev) {
+        jfContent.on('click.fhJsonTree', '.fh-json-page, .fh-json-full-string', function (ev) {
             ev.preventDefault();
             ev.stopPropagation();
             let button = $(this);
@@ -1602,7 +1601,7 @@ window.Formatter = (function () {
                 return true;
             }
 
-            _selectJsonElement(el, {scroll: false});
+            _selectJsonElement(el, { scroll: false });
 
             if (!$(e.target).is('.item .expand')) {
                 e.stopPropagation();
@@ -1616,41 +1615,41 @@ window.Formatter = (function () {
 
         // 行悬停效果：只高亮当前直接悬停的item，避免嵌套冒泡
         let currentHoverElement = null;
-        
+
         jfContent.on('mouseenter.fhJsonTree', '.item', function (e) {
             // 只处理视觉效果，不触发任何其他逻辑
-            
+
             // 清除之前的悬停样式
             if (currentHoverElement) {
                 currentHoverElement.removeClass('fh-hover');
             }
-            
+
             // 添加当前悬停样式
             let el = $(this);
             el.addClass('fh-hover');
             currentHoverElement = el;
-            
+
             // 严格阻止事件冒泡和默认行为
             e.stopPropagation();
             e.stopImmediatePropagation();
             e.preventDefault();
         });
-        
+
         jfContent.on('mouseleave.fhJsonTree', '.item', function (e) {
             // 只处理视觉效果，不触发任何其他逻辑
             let el = $(this);
             el.removeClass('fh-hover');
-            
+
             // 如果当前移除的元素是记录的悬停元素，清空记录
             if (currentHoverElement && currentHoverElement[0] === el[0]) {
                 currentHoverElement = null;
             }
-            
+
             // 严格阻止事件冒泡和默认行为
             e.stopPropagation();
             e.stopImmediatePropagation();
         });
-        
+
         // 为整个jfContent区域添加鼠标离开事件，确保彻底清除悬停样式
         $('#jfContent').bind('mouseleave', function (e) {
             if (currentHoverElement) {
@@ -1672,7 +1671,7 @@ window.Formatter = (function () {
             cache[url] = isImg;
             sessionStorage.setItem('fehelper-img-preview-cache', JSON.stringify(cache));
         }
-        $('#jfContent').on('mouseenter', 'a[data-is-link="1"]', function(e) {
+        $('#jfContent').on('mouseenter', 'a[data-is-link="1"]', function (e) {
             const url = $(this).attr('data-link-url');
             if (!url) return;
             let cache = getImgCache();
@@ -1681,7 +1680,7 @@ window.Formatter = (function () {
                     $imgPreview = getOrCreateImgPreview();
                     $imgPreview.find('img').attr('src', url);
                     $imgPreview.show();
-                    $(document).on('mousemove.fhimg', function(ev) {
+                    $(document).on('mousemove.fhimg', function (ev) {
                         $imgPreview.css({
                             left: ev.pageX + 20 + 'px',
                             top: ev.pageY + 20 + 'px'
@@ -1697,12 +1696,12 @@ window.Formatter = (function () {
             // 创建图片对象尝试加载
             const img = new window.Image();
             img.src = url;
-            img.onload = function() {
+            img.onload = function () {
                 setImgCache(url, true);
                 $imgPreview = getOrCreateImgPreview();
                 $imgPreview.find('img').attr('src', url);
                 $imgPreview.show();
-                $(document).on('mousemove.fhimg', function(ev) {
+                $(document).on('mousemove.fhimg', function (ev) {
                     $imgPreview.css({
                         left: ev.pageX + 20 + 'px',
                         top: ev.pageY + 20 + 'px'
@@ -1713,16 +1712,16 @@ window.Formatter = (function () {
                     top: e.pageY + 20 + 'px'
                 });
             };
-            img.onerror = function() {
+            img.onerror = function () {
                 setImgCache(url, false);
             };
-        }).on('mouseleave', 'a[data-is-link="1"]', function(e) {
+        }).on('mouseleave', 'a[data-is-link="1"]', function (e) {
             if ($imgPreview) $imgPreview.hide();
             $(document).off('mousemove.fhimg');
         });
 
         // 新增：全局监听，防止浮窗残留
-        $(document).on('mousemove.fhimgcheck', function(ev) {
+        $(document).on('mousemove.fhimgcheck', function (ev) {
             let $target = $(ev.target).closest('a[data-is-link="1"]');
             if ($target.length === 0) {
                 if ($imgPreview) $imgPreview.hide();
@@ -1731,12 +1730,12 @@ window.Formatter = (function () {
         });
 
     };
-    
+
     /**
      * 检测基本环境限制（沙盒等）
      * @returns {boolean}
      */
-    let _checkBasicRestrictions = function() {
+    let _checkBasicRestrictions = function () {
         // 检查是否在iframe中且被沙盒化
         if (window !== window.top) {
             try {
@@ -1747,38 +1746,38 @@ window.Formatter = (function () {
                 return true;
             }
         }
-        
+
         // 检查是否在受限的协议下（非chrome-extension:、http:、https:）
         if (location.protocol !== 'chrome-extension:' && location.protocol !== 'http:' && location.protocol !== 'https:') {
             // 静默处理，不输出日志
             return true;
         }
-        
+
         return false;
     };
-    
+
 
     /**
      * 初始化或获取Worker实例（异步，兼容Chrome/Edge/Firefox）
      * 自动检测CSP限制，如果检测到限制则回退到同步模式
      * @returns {Promise<Worker|null>}
      */
-    let _getWorkerInstance = async function() {
+    let _getWorkerInstance = async function () {
         if (workerInstance) {
             return workerInstance;
         }
-        
+
         // 如果已经检测到CSP限制，直接返回null，避免重复尝试
         if (cspRestricted) {
             return null;
         }
-        
+
         // 检查基本环境限制（沙盒、协议等）
         if (_checkBasicRestrictions()) {
             cspRestricted = true;
             return null;
         }
-        
+
         // 在非chrome-extension协议下，使用Blob URL方式创建Worker可能会触发CSP错误
         // 为了避免控制台报错，直接使用同步模式
         // 只有在chrome-extension协议下才使用Worker（不会有CSP限制）
@@ -1787,7 +1786,7 @@ window.Formatter = (function () {
             cspRestricted = true;
             return null;
         }
-        
+
         // 只在chrome-extension协议下创建Worker
         let workerUrl = chrome.runtime.getURL('json-format/json-worker.js');
         // 判断是否为Firefox
@@ -1821,7 +1820,7 @@ window.Formatter = (function () {
         }
     };
 
-    let _renderRawParseFallback = function(jsonStr, error) {
+    let _renderRawParseFallback = function (jsonStr, error) {
         let raw = String(jsonStr || '');
         let message = error && error.message ? error.message : '未知错误';
         let totalLength = raw.length.toLocaleString('zh-CN');
@@ -1836,19 +1835,19 @@ window.Formatter = (function () {
         jfPre.html(htmlspecialchars(previewRaw));
         jfContent.html(
             '<section class="fh-raw-source-fallback" role="region" aria-label="原文预览">' +
-                '<div class="fh-raw-source-fallback-head">' +
-                    '<div class="fh-raw-source-fallback-copy">' +
-                        '<strong>原文预览</strong>' +
-                        '<span>JSON 解析失败，已保留原文：' + htmlspecialchars(message) + htmlspecialchars(truncatedNote) + '</span>' +
-                    '</div>' +
-                    '<span class="fh-raw-source-fallback-meta">' + totalLength + ' 字符</span>' +
-                '</div>' +
-                '<pre class="fh-raw-source-fallback-pre"><code>' + htmlspecialchars(previewRaw) + '</code></pre>' +
+            '<div class="fh-raw-source-fallback-head">' +
+            '<div class="fh-raw-source-fallback-copy">' +
+            '<strong>原文预览</strong>' +
+            '<span>JSON 解析失败，已保留原文：' + htmlspecialchars(message) + htmlspecialchars(truncatedNote) + '</span>' +
+            '</div>' +
+            '<span class="fh-raw-source-fallback-meta">' + totalLength + ' 字符</span>' +
+            '</div>' +
+            '<pre class="fh-raw-source-fallback-pre"><code>' + htmlspecialchars(previewRaw) + '</code></pre>' +
             '</section>'
         );
     };
 
-    let _shouldUseLargeJsonPlainView = function(value, source) {
+    let _shouldUseLargeJsonPlainView = function (value, source) {
         let utils = window.FHJsonAutoUtils || {};
         if (typeof utils.shouldUsePlainJsonView === 'function') {
             return utils.shouldUsePlainJsonView(value, String(source || '').length, {
@@ -1867,9 +1866,9 @@ window.Formatter = (function () {
     let pagedJsonNodes = new Map();
     let pagedJsonNodeId = 0;
 
-    let _pagedJsonNodeHtml = function(value, path, key, arrayIndex, comma, parent) {
+    let _pagedJsonNodeHtml = function (value, path, key, arrayIndex, comma, parent) {
         let id = ++pagedJsonNodeId;
-        pagedJsonNodes.set(id, {value, path, parent, key: arrayIndex === undefined ? key : arrayIndex});
+        pagedJsonNodes.set(id, { value, path, parent, key: arrayIndex === undefined ? key : arrayIndex });
         let type = getType(value);
         let container = type === 'array' || type === 'object';
         let classes = 'item' + (container ? ' item-block collapsed' : ' item-line');
@@ -1904,7 +1903,7 @@ window.Formatter = (function () {
         return html + (comma ? '<span class="comma">,</span>' : '') + '</div>';
     };
 
-    let _pagedJsonChildrenHtml = function(entry, offset) {
+    let _pagedJsonChildrenHtml = function (entry, offset) {
         let value = entry.value;
         let array = Array.isArray(value);
         // Cache object keys only when this branch is opened; arrays need no key list.
@@ -1934,11 +1933,11 @@ window.Formatter = (function () {
         return html;
     };
 
-    let _loadPagedJsonChildren = function(el, offset) {
+    let _loadPagedJsonChildren = function (el, offset) {
         let entry = pagedJsonNodes.get(Number(el.attr('data-fh-lazy')));
         if (!entry || !entry.value || typeof entry.value !== 'object') return;
         let list = el.children('.kv-list');
-        list.find('[data-fh-lazy]').each(function() {
+        list.find('[data-fh-lazy]').each(function () {
             pagedJsonNodes.delete(Number($(this).attr('data-fh-lazy')));
         });
         list.html(_pagedJsonChildrenHtml(entry, offset));
@@ -1948,7 +1947,7 @@ window.Formatter = (function () {
         _clearSelection();
     };
 
-    let _renderPagedJsonTree = function() {
+    let _renderPagedJsonTree = function () {
         if (!_canRenderFormattedResult()) return false;
         pagedJsonNodes.clear();
         pagedJsonNodeId = 0;
@@ -1969,7 +1968,7 @@ window.Formatter = (function () {
     };
 
     // Fully expanded rendering still obeys its original size/node/depth budget.
-    let _canRenderLargeJsonTree = function() {
+    let _canRenderLargeJsonTree = function () {
         let utils = window.FHJsonAutoUtils || {};
         return typeof utils.shouldUsePlainJsonView === 'function' &&
             !utils.shouldUsePlainJsonView(cachedJsonValue, cachedJsonString.length, {
@@ -1979,7 +1978,7 @@ window.Formatter = (function () {
             });
     };
 
-    let _renderLargeJsonTree = function() {
+    let _renderLargeJsonTree = function () {
         if (!_canRenderFormattedResult() || !_canRenderLargeJsonTree()) return false;
         let previousEscape = escapeJsonStringEnabled;
         try {
@@ -2007,7 +2006,7 @@ window.Formatter = (function () {
         }
     };
 
-    let _renderLargeJsonPlainView = function() {
+    let _renderLargeJsonPlainView = function () {
         if (!_canRenderFormattedResult()) {
             _clearOptionBar();
             return false;
@@ -2025,14 +2024,14 @@ window.Formatter = (function () {
         $('<span class="fh-json-large-mode-note" title="大型 JSON 默认显示完整文本，可按需加载节点操作">大 JSON 文本视图</span>').prependTo('#optionBar');
         if (_canRenderLargeJsonTree()) {
             $('<button class="xjf-btn xjf-btn-mid fh-json-large-tree" title="加载节点以复制、查看路径、下载或删除；较大数据可能需要稍候">切换为节点视图</button>')
-                .appendTo('#optionBar').bind('click', function(e) {
+                .appendTo('#optionBar').bind('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
                     _renderLargeJsonTree();
                 });
         } else {
             $('<button class="xjf-btn xjf-btn-mid fh-json-paged-tree" title="逐层展开，每页100项；复制与下载保留完整数据">切换为节点视图</button>')
-                .appendTo('#optionBar').bind('click', function(e) {
+                .appendTo('#optionBar').bind('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
                     _renderPagedJsonTree();
@@ -2049,7 +2048,7 @@ window.Formatter = (function () {
     let format = async function (jsonStr, skin, escapeJsonString) {
         const revision = _cancelPendingFormat();
         _initElements();
-        
+
         // 设置转义功能标志
         if (escapeJsonString !== undefined) {
             escapeJsonStringEnabled = escapeJsonString;
@@ -2152,21 +2151,21 @@ window.Formatter = (function () {
             return;
         }
         _initElements();
-        
+
         // 设置转义功能标志
         if (escapeJsonString !== undefined) {
             escapeJsonStringEnabled = escapeJsonString;
         }
-        
+
         // 显示格式化进度
         formattingMsg.show();
-        
+
         try {
             // 先验证JSON是否有效（使用与worker一致的BigInt安全解析）
             let parsedJson = _parseWithBigInt(jsonStr);
             cachedJsonValue = parsedJson;
             cachedJsonString = _safeStringify(parsedJson, 4);
-            
+
             // 保留原始 JSON 内容，供旧 DOM 节点复用。
             jfPre.html(htmlspecialchars(cachedJsonString));
 
@@ -2177,15 +2176,15 @@ window.Formatter = (function () {
 
             // 使用完整的JSON美化功能
             let formattedHtml = formatJsonToHtml(parsedJson, skin);
-            
+
             // 创建正确的HTML结构：jfContent > formattedJson
             let formattedJsonDiv = $('<div id="formattedJson"></div>');
             formattedJsonDiv.html(formattedHtml);
             jfContent.html(formattedJsonDiv);
-            
+
             // 隐藏进度提示
             formattingMsg.hide();
-            
+
             // 构建操作栏
             _buildOptionBar();
             // 事件绑定
@@ -2194,12 +2193,12 @@ window.Formatter = (function () {
             _downloadSupport(cachedJsonString);
             _clearJsonSearch();
             _emitFormatReady();
-            
+
             return;
         } catch (e) {
             console.error('JSON格式化失败:', e);
             jfContent.html(`<div class="error">JSON格式化失败: ${e.message}</div>`);
-            
+
             // 隐藏进度提示
             formattingMsg.hide();
         }
@@ -2207,7 +2206,7 @@ window.Formatter = (function () {
 
     // 与 worker 保持一致的 BigInt 安全解析：
     // 1) 给可能的大整数加标记；2) 使用reviver还原为原生BigInt
-    let _parseWithBigInt = function(text) {
+    let _parseWithBigInt = function (text) {
         if (
             typeof window !== 'undefined' &&
             window.FHJsonAutoUtils &&
@@ -2228,34 +2227,34 @@ window.Formatter = (function () {
             let inString = false;
             let escape = false;
             let marked = '';
-            
+
             for (let i = 0; i < text.length; i++) {
                 const char = text[i];
-                
+
                 if (escape) {
                     marked += char;
                     escape = false;
                     continue;
                 }
-                
+
                 if (char === '\\') {
                     marked += char;
                     escape = true;
                     continue;
                 }
-                
+
                 if (char === '"') {
                     inString = !inString;
                     marked += char;
                     continue;
                 }
-                
+
                 marked += char;
             }
-            
+
             // 只在非字符串上下文中替换大整数
             // 使用更精确的正则，确保不在字符串内
-            const result = text.replace(/([:,\[]\s*)(-?\d{16,})(\s*)(?=[,\]\}])/g, function(match, prefix, number, spaces, offset) {
+            const result = text.replace(/([:,\[]\s*)(-?\d{16,})(\s*)(?=[,\]\}])/g, function (match, prefix, number, spaces, offset) {
                 // 检查这个位置是否在字符串内
                 let inStr = false;
                 let esc = false;
@@ -2272,16 +2271,16 @@ window.Formatter = (function () {
                         inStr = !inStr;
                     }
                 }
-                
+
                 // 如果在字符串内，不替换
                 if (inStr) {
                     return match;
                 }
-                
+
                 return prefix + '"__BigInt__' + number + '"' + spaces;
             });
-            
-            return JSON.parse(result, function(key, value) {
+
+            return JSON.parse(result, function (key, value) {
                 if (typeof value === 'string' && value.indexOf('__BigInt__') === 0) {
                     try {
                         return BigInt(value.slice(10));
@@ -2294,7 +2293,7 @@ window.Formatter = (function () {
         }
     };
 
-    let _safeStringify = function(value, space) {
+    let _safeStringify = function (value, space) {
         if (
             typeof window !== 'undefined' &&
             window.FHJsonAutoUtils &&
@@ -2303,7 +2302,7 @@ window.Formatter = (function () {
             return window.FHJsonAutoUtils.safeStringify(value, space);
         }
 
-        let tagged = JSON.stringify(value, function(key, item) {
+        let tagged = JSON.stringify(value, function (key, item) {
             if (typeof item === 'bigint') {
                 return item.toString();
             }
@@ -2311,14 +2310,14 @@ window.Formatter = (function () {
                 return getBigNumberDisplayString(item);
             }
             if (typeof item === 'number' && item.toString().includes('e')) {
-                return item.toLocaleString('fullwide', {useGrouping: false});
+                return item.toLocaleString('fullwide', { useGrouping: false });
             }
             return item;
         }, space);
         return tagged.replace(/"__FH_PRESERVE_INTEGER_KEY__(\d+)":/g, '"$1":');
     };
 
-    let _normalizePreservedKey = function(key) {
+    let _normalizePreservedKey = function (key) {
         if (
             typeof window !== 'undefined' &&
             window.FHJsonAutoUtils &&
@@ -2354,9 +2353,9 @@ window.Formatter = (function () {
             type: getType(value),
             value: value,
             children: [],
-            
-            getHTML: function() {
-                switch(this.type) {
+
+            getHTML: function () {
+                switch (this.type) {
                     case 'string':
                         const wrapLongString = shouldWrapLongString(this.value);
                         const lineClass = wrapLongString ? 'item item-line item-line-wrap' : 'item item-line';
@@ -2365,7 +2364,7 @@ window.Formatter = (function () {
                         if (isUrl(this.value)) {
                             // 用JSON.stringify保证转义符显示，内容包裹在<a>里
                             return '<div class="' + lineClass + '"><span class="' + stringClass + '"><a href="'
-                                + htmlspecialchars(this.value) + '" target="_blank" rel="noopener noreferrer" data-is-link="1" data-link-url="' + htmlspecialchars(this.value) + '">' 
+                                + htmlspecialchars(this.value) + '" target="_blank" rel="noopener noreferrer" data-is-link="1" data-link-url="' + htmlspecialchars(this.value) + '">'
                                 + htmlspecialchars(JSON.stringify(this.value)) + '</a></span></div>';
                         } else {
                             // 检测字符串是否是有效的JSON（用于转义功能）
@@ -2374,7 +2373,7 @@ window.Formatter = (function () {
                                 const strValue = String(this.value);
                                 // 检查字符串是否看起来像JSON（以[或{开头，以]或}结尾）
                                 const trimmed = strValue.trim();
-                                if ((trimmed.startsWith('[') && trimmed.endsWith(']')) || 
+                                if ((trimmed.startsWith('[') && trimmed.endsWith(']')) ||
                                     (trimmed.startsWith('{') && trimmed.endsWith('}'))) {
                                     try {
                                         // 尝试解析为JSON，使用全局的 JSON.parse（已被 json-bigint.js 覆盖）
@@ -2405,20 +2404,20 @@ window.Formatter = (function () {
                         }
                     case 'number':
                         // 确保大数字不使用科学计数法
-                        let numStr = typeof this.value === 'number' && this.value.toString().includes('e') 
-                            ? this.value.toLocaleString('fullwide', {useGrouping: false})
+                        let numStr = typeof this.value === 'number' && this.value.toString().includes('e')
+                            ? this.value.toLocaleString('fullwide', { useGrouping: false })
                             : this.value;
-                        return '<div class="item item-line"><span class="number">' + 
-                            numStr + 
+                        return '<div class="item item-line"><span class="number">' +
+                            numStr +
                             '</span></div>';
                     case 'bigint':
                         // 对BigInt类型特殊处理，只显示数字，不添加n后缀
-                        return '<div class="item item-line"><span class="number">' + 
-                            getBigNumberDisplayString(this.value) + 
+                        return '<div class="item item-line"><span class="number">' +
+                            getBigNumberDisplayString(this.value) +
                             '</span></div>';
                     case 'boolean':
-                        return '<div class="item item-line"><span class="bool">' + 
-                            this.value + 
+                        return '<div class="item item-line"><span class="bool">' +
+                            this.value +
                             '</span></div>';
                     case 'null':
                         return '<div class="item item-line"><span class="null">null</span></div>';
@@ -2430,18 +2429,18 @@ window.Formatter = (function () {
                         return '';
                 }
             },
-            
-            getObjectHTML: function() {
+
+            getObjectHTML: function () {
                 if (!this.value || Object.keys(this.value).length === 0) {
                     return '<div class="item item-object"><span class="brace">{</span><span class="brace">}</span></div>';
                 }
-                
+
                 let html = '<div class="item item-object">' +
                     '<span class="expand"></span>' +
                     '<span class="brace">{</span>' +
                     '<span class="ellipsis"></span>' +
                     '<div class="kv-list">';
-                    
+
                 let keys = Object.keys(this.value);
                 keys.forEach((key, index) => {
                     let prop = this.value[key];
@@ -2470,27 +2469,27 @@ window.Formatter = (function () {
                     }
                     html += '</div>';
                 });
-                
+
                 html += '</div><span class="brace">}</span></div>';
                 return html;
             },
-            
-            getArrayHTML: function() {
+
+            getArrayHTML: function () {
                 if (!this.value || this.value.length === 0) {
                     return '<div class="item item-array"><span class="brace">[</span><span class="brace">]</span></div>';
                 }
-                
+
                 let html = '<div class="item item-array">' +
                     '<span class="expand"></span>' +
                     '<span class="brace">[</span>' +
                     '<span class="ellipsis"></span>' +
                     '<div class="kv-list item-array-container">';
-                    
+
                 this.value.forEach((item, index) => {
                     let childNode = createNode(item);
-                    
+
                     html += '<div class="item item-block item-array-element" data-array-index="' + index + '">';
-                    
+
                     // 如果数组元素是对象或数组，在前面添加展开按钮
                     if (childNode.type === 'object' || childNode.type === 'array') {
                         html += '<span class="expand"></span>';
@@ -2498,22 +2497,22 @@ window.Formatter = (function () {
                     } else {
                         html += childNode.getHTML().replace(/^<div class="item item-line(?: item-line-wrap)?">/, '').replace(/<\/div>$/, '');
                     }
-                    
+
                     // 如果不是最后一个元素，添加逗号
                     if (index < this.value.length - 1) {
                         html += '<span class="comma">,</span>';
                     }
-                    
+
                     html += '</div>';
                 });
-                
+
                 html += '</div><span class="brace">]</span></div>';
                 return html;
             },
-            
+
             // 新增内联HTML方法，用于在同一行显示开始大括号/方括号
-            getInlineHTML: function() {
-                switch(this.type) {
+            getInlineHTML: function () {
+                switch (this.type) {
                     case 'object':
                         return this.getInlineObjectHTML();
                     case 'array':
@@ -2522,10 +2521,10 @@ window.Formatter = (function () {
                         return this.getHTML();
                 }
             },
-            
+
             // 新增不包含展开按钮的内联HTML方法
-            getInlineHTMLWithoutExpand: function() {
-                switch(this.type) {
+            getInlineHTMLWithoutExpand: function () {
+                switch (this.type) {
                     case 'object':
                         return this.getInlineObjectHTMLWithoutExpand();
                     case 'array':
@@ -2534,8 +2533,8 @@ window.Formatter = (function () {
                         return this.getHTML();
                 }
             },
-            
-            getInlineObjectHTML: function() {
+
+            getInlineObjectHTML: function () {
                 if (!this.value || Object.keys(this.value).length === 0) {
                     return '<span class="brace">{</span><span class="brace">}</span>';
                 }
@@ -2571,22 +2570,22 @@ window.Formatter = (function () {
                 html += '</div><span class="brace">}</span>';
                 return html;
             },
-            
-            getInlineArrayHTML: function() {
+
+            getInlineArrayHTML: function () {
                 if (!this.value || this.value.length === 0) {
                     return '<span class="brace">[</span><span class="brace">]</span>';
                 }
-                
+
                 let html = '<span class="brace">[</span>' +
                     '<span class="expand"></span>' +
                     '<span class="ellipsis"></span>' +
                     '<div class="kv-list item-array-container">';
-                    
+
                 this.value.forEach((item, index) => {
                     let childNode = createNode(item);
-                    
+
                     html += '<div class="item item-block item-array-element" data-array-index="' + index + '">';
-                    
+
                     // 如果数组元素是对象或数组，在前面添加展开按钮
                     if (childNode.type === 'object' || childNode.type === 'array') {
                         html += '<span class="expand"></span>';
@@ -2594,20 +2593,20 @@ window.Formatter = (function () {
                     } else {
                         html += childNode.getHTML().replace(/^<div class="item item-line(?: item-line-wrap)?">/, '').replace(/<\/div>$/, '');
                     }
-                    
+
                     // 如果不是最后一个元素，添加逗号
                     if (index < this.value.length - 1) {
                         html += '<span class="comma">,</span>';
                     }
-                    
+
                     html += '</div>';
                 });
-                
+
                 html += '</div><span class="brace">]</span>';
                 return html;
             },
-            
-            getInlineObjectHTMLWithoutExpand: function() {
+
+            getInlineObjectHTMLWithoutExpand: function () {
                 if (!this.value || Object.keys(this.value).length === 0) {
                     return '<span class="brace">{</span><span class="brace">}</span>';
                 }
@@ -2642,21 +2641,21 @@ window.Formatter = (function () {
                 html += '</div><span class="brace">}</span>';
                 return html;
             },
-            
-            getInlineArrayHTMLWithoutExpand: function() {
+
+            getInlineArrayHTMLWithoutExpand: function () {
                 if (!this.value || this.value.length === 0) {
                     return '<span class="brace">[</span><span class="brace">]</span>';
                 }
-                
+
                 let html = '<span class="brace">[</span>' +
                     '<span class="ellipsis"></span>' +
                     '<div class="kv-list item-array-container">';
-                    
+
                 this.value.forEach((item, index) => {
                     let childNode = createNode(item);
-                    
+
                     html += '<div class="item item-block item-array-element" data-array-index="' + index + '">';
-                    
+
                     // 确保所有类型的数组元素都能正确处理
                     if (childNode.type === 'object' || childNode.type === 'array') {
                         html += '<span class="expand"></span>';
@@ -2664,20 +2663,20 @@ window.Formatter = (function () {
                     } else {
                         html += childNode.getHTML().replace(/^<div class="item item-line(?: item-line-wrap)?">/, '').replace(/<\/div>$/, '');
                     }
-                    
+
                     // 如果不是最后一个元素，添加逗号
                     if (index < this.value.length - 1) {
                         html += '<span class="comma">,</span>';
                     }
-                    
+
                     html += '</div>';
                 });
-                
+
                 html += '</div><span class="brace">]</span>';
                 return html;
             }
         };
-        
+
         return node;
     }
 
@@ -2706,7 +2705,7 @@ window.Formatter = (function () {
     function formatStringValue(str) {
         // URL正则表达式，匹配 http/https/ftp 协议的URL
         const urlRegex = /^(https?:\/\/|ftp:\/\/)[^\s<>"'\\]+$/i;
-        
+
         if (urlRegex.test(str)) {
             // 如果是URL，转换为链接
             const escapedUrl = htmlspecialchars(str);
@@ -2747,7 +2746,7 @@ window.Formatter = (function () {
                 if (typeof result === 'string' && result !== '[object Object]') {
                     return result;
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
         const ctor = getAvailableBigNumberCtor();
         if (ctor && typeof Object.setPrototypeOf === 'function') {
@@ -2761,7 +2760,7 @@ window.Formatter = (function () {
                         return result;
                     }
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
         return null;
     }
@@ -2817,60 +2816,60 @@ window.Formatter = (function () {
         format: format,
         cancelPendingFormat: _cancelPendingFormat,
         formatSync: formatSync,
-        setEscapeEnabled: function(enabled) {
+        setEscapeEnabled: function (enabled) {
             escapeJsonStringEnabled = enabled;
         },
-        setStatusBarEnabled: function(enabled) {
+        setStatusBarEnabled: function (enabled) {
             _syncStatusBarEnabled(enabled);
         },
-        search: function(query) {
+        search: function (query) {
             return _searchJsonNodes(query);
         },
-        nextSearch: function(delta) {
+        nextSearch: function (delta) {
             return _nextJsonSearchMatch(delta);
         },
-        clearSearch: function() {
+        clearSearch: function () {
             return _clearJsonSearch();
         },
-        getSearchState: function() {
+        getSearchState: function () {
             return _getSearchResultState();
         },
-        getSelectionInfo: function() {
+        getSelectionInfo: function () {
             return _getSelectionInfo(_getExplicitSelectedJsonElement());
         },
-        selectFirst: function() {
+        selectFirst: function () {
             return _selectJsonElement(_getSelectedJsonElement());
         },
-        clearSelection: function() {
+        clearSelection: function () {
             return _clearSelection();
         },
-        copySelectedPath: function() {
+        copySelectedPath: function () {
             return _copySelectedPath();
         },
-        copySelectedValue: function() {
+        copySelectedValue: function () {
             return _copySelectedValue();
         },
-        collapseAll: function() {
+        collapseAll: function () {
             _collapseAllJsonNodes();
             return _getSelectionInfo(_getExplicitSelectedJsonElement());
         },
-        expandAll: function() {
+        expandAll: function () {
             _expandAllJsonNodes();
             return _getSelectionInfo(_getExplicitSelectedJsonElement());
         },
-        setPlainJsonView: function(enabled) {
+        setPlainJsonView: function (enabled) {
             _setPlainJsonView(!!enabled);
-            return {plain: plainJsonViewEnabled};
+            return { plain: plainJsonViewEnabled };
         },
-        togglePlainJsonView: function(enabled) {
+        togglePlainJsonView: function (enabled) {
             _setPlainJsonView(enabled === undefined ? !plainJsonViewEnabled : !!enabled);
-            return {plain: plainJsonViewEnabled};
+            return { plain: plainJsonViewEnabled };
         },
-        isPlainJsonViewEnabled: function() {
+        isPlainJsonViewEnabled: function () {
             return plainJsonViewEnabled;
         },
-        isLargeJsonPlainViewEnabled: function() {
+        isLargeJsonPlainViewEnabled: function () {
             return largeJsonPlainViewEnabled;
         }
-    }
+    };
 })();
